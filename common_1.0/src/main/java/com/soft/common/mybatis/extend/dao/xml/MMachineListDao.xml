@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.MMachineListDao">
+	<resultMap id="mMachineMap" type="com.soft.common.mybatis.extend.entity.MMachineEx" extends="com.soft.common.mapper.MMachineMapper.BaseResultMap">
+		<result column="orgNm" jdbcType="VARCHAR" property="orgNm" />
+		<result column="machineTypeNm" jdbcType="VARCHAR" property="machineTypeNm" />
+        <result column="unitNm" jdbcType="VARCHAR" property="unitNm" />
+        <result column="colorSystemNm" jdbcType="VARCHAR" property="colorSystemNm" />
+        <result column="prodShortOverRange" jdbcType="DECIMAL" property="prodShortOverRange" />
+	</resultMap>
+	<select id="getMachineList" resultMap="mMachineMap">
+			SELECT m.*                              <!--机台表-->
+					,g1.GENERAL_NM machineTypeNm     <!--机台种类名-->
+					,g2.GENERAL_NM unitNm            <!--计量单位 -->
+					,o.ORG_NM orgNm                  <!--所属部门名称-->
+                    ,g3.GENERAL_NM colorSystemNm     <!--常用色系-->
+                    ,m.NUM1 prodShortOverRange       <!--生产短溢装范围-->
+			  FROM M_MACHINE m
+            left join M_GENERAL g1 on g1.GENERAL_MASTER_TYPE = 'MACHINE_TYPE'
+            and g1.DEL_FLG = '0'
+            and g1.GENERAL_CD = m.MACHINE_TYPE
+            left join M_GENERAL g2 on g2.GENERAL_MASTER_TYPE = 'UNIT'
+            and g2.DEL_FLG = '0'
+            and g2.GENERAL_CD = m.UNIT
+            left join M_GENERAL g3 on g3.GENERAL_MASTER_TYPE = 'COLOR_SYSTEM'
+            and g3.DEL_FLG = '0'
+            and g3.GENERAL_CD = m.COLOR_SYSTEM
+            left join M_ORG o
+            on m.ORG_ID = o.ID
+            and m.CNTR_CD = o.CNTR_CD
+            and m.DEL_FLG = '0'
+			 WHERE 1 = 1
+		       AND m.DEL_FLG = '0'
+			<if test="cntrCd != null and cntrCd != '' ">
+			   AND m.CNTR_CD = #{cntrCd}
+			</if>
+            <if test="machineCd != null and machineCd != '' ">
+                <bind name="like_machineCd" value="'%' + machineCd + '%'"/>
+                AND m.MACHINE_CD like #{like_machineCd}
+            </if>
+            <if test="machineNm != null and machineNm != '' ">
+                <bind name="like_machineNm" value="'%' + machineNm + '%'"/>
+                AND m.MACHINE_NM like #{like_machineNm}
+            </if>
+            <if test="machineType != null and machineType != '' ">
+                AND m.MACHINE_TYPE = #{machineType}
+            </if>
+            <if test="assetModel != null and assetModel != '' ">
+                <bind name="like_assetModel" value="'%' + assetModel + '%'"/>
+                AND m.ASSET_MODEL like #{like_assetModel}
+            </if>
+            <if test="id != null and id != '' ">
+                AND m.ID = #{id}
+            </if>
+		    order by m.MACHINE_CD,m.MACHINE_NM
+	</select>
+
+</mapper>

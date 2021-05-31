@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.MErrorinfoListDao">
+	<resultMap id="mErrorinfoMap" type="com.soft.common.model.MErrorinfo"  extends="com.soft.common.mapper.MErrorinfoMapper.BaseResultMap">
+	</resultMap>
+	<select id="selectMErrorinfo" resultMap="mErrorinfoMap">
+			SELECT m.*          <!--提示表 -->
+			  FROM M_ERRORINFO m
+			 WHERE 1 = 1
+		       AND m.DEL_FLG = '0'
+			<if test="errId != null and errId != '' ">
+			   AND m.ERR_ID = #{errId}
+			</if>
+			<if test="errInfo != null and errInfo != '' ">
+				<bind name="like_errInfo" value="'%' + errInfo + '%'"/>
+			   AND m.ERR_INFO like #{like_errInfo}
+			</if>
+			order by m.ERR_ID
+	</select>
+	<select id="selectMErrorinfoList" resultMap="mErrorinfoMap">
+		SELECT m.*           <!--提示表 -->
+		FROM M_ERRORINFO m
+		WHERE 1 = 1
+		AND m.DEL_FLG = '0'
+		AND m.ERR_ID = #{errId}
+	</select>
+</mapper>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.TSupplierAppraiseListDao">
+<!--	<resultMap id="tSupplierAppraiseMap" type="com.soft.common.mybatis.extend.entity.TSupplierAppraiseList" extends="com.soft.common.mapper.TSupplierAppraiseMapper.BaseResultMap">-->
+    <resultMap id="tSupplierAppraiseMap" type="com.soft.common.mybatis.extend.entity.TSupplierAppraiseList">
+		<result column="orgNm" jdbcType="VARCHAR" property="orgNm" />
+		<result column="supplierNm" jdbcType="VARCHAR" property="supplierNm" />
+		<result column="appTypeNm" jdbcType="VARCHAR" property="appTypeNm" />
+	</resultMap>
+	<select id="selectTSupplierAppraise" resultMap="tSupplierAppraiseMap">
+			SELECT t.*                          <!--供应商评价 -->
+					,o.ORG_NM orgNm             <!--组织部门名称 -->
+					,m.SUPPLIER_NM supplierNm   <!--供应商名称 -->
+					,g.GENERAL_NM appTypeNm     <!--评价等级 -->
+			  FROM T_SUPPLIER_APPRAISE t
+			 left join M_GENERAL g ON g.GENERAL_MASTER_TYPE = 'APPRAISE_TYPE'
+			 and t.APPRAISE_LEVEL = g.GENERAL_CD
+			 AND g.DEL_FLG = '0'
+			 left join M_SUPPLIER m
+			 ON m.ID = t.SUPPLIER_CD
+			 and m.CNTR_CD = t.CNTR_CD
+			 AND m.DEL_FLG = '0'
+			 left join M_ORG o
+			 ON o.ID = t.ORG_ID
+			 and o.CNTR_CD = t.CNTR_CD
+			 AND o.DEL_FLG = '0'
+			  WHERE 1 = 1
+			   AND t.DEL_FLG = '0'
+			   AND t.SUPPLIER_CD = #{supplierId}
+	</select>
+</mapper>

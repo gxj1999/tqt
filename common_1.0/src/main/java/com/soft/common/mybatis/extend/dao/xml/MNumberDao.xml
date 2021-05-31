@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.MNumberDao">
+	<resultMap id="BaseResultMap" type="com.soft.common.model.MNumericing" extends="com.soft.common.mapper.MNumericingMapper.BaseResultMap">
+	</resultMap>
+	<select id="selectNumber"  resultMap="BaseResultMap">
+		select *
+		from m_numericing
+		where
+		BIZ_CD = '${bizCd}'
+		AND DEL_FLG = '0'
+	</select>
+	<update id="updateNumber" >
+		update m_numericing set
+		PRESENT_VALUE = ${presentValues}
+		,UPD_CNT = UPD_CNT + 1
+		,UPD_ENT_KBN = '1'
+		,UPD_DT = NOW()
+		where
+		BIZ_CD = '${bizCd}'
+        <if test="fixedValue != null and fixedValue != ''">
+            and FIXED_VALUE = '${fixedValue}'
+        </if>
+		and PRESENT_VALUE = ${presentValue}
+		and INC_VALUE = ${IncValue}
+	</update>
+	<!--<update id="updateNumberCls" >-->
+		<!--update m_numericing set-->
+		<!--FIXED_VALUE = '${fixedValue}',-->
+		<!--PRESENT_VALUE = ${presentValue},-->
+		<!--INC_VALUE = ${IncValue}-->
+		<!--where-->
+		<!--BIZ_CD = '${bizCd}'-->
+	<!--</update>-->
+</mapper>

@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.soft.common.mybatis.extend.dao.RoleDao">
+    <resultMap id="BaseResultMap" type="com.soft.common.mybatis.extend.entity.User" extends="com.soft.common.mapper.MUserMapper.BaseResultMap">
+    </resultMap>
+    <resultMap id="RoleListMap" type="com.soft.common.mybatis.extend.entity.Role">
+        <result column="MODULE_CD" jdbcType="VARCHAR" property="moduleCd" />
+        <result column="MODULE_TYPE" jdbcType="VARCHAR" property="moduleType" />
+        <collection property="children" column="userId = userId,parentId = parentId" select="getChildren" javaType="java.util.ArrayList" ofType="com.soft.common.mybatis.extend.entity.Role"/>
+    </resultMap>
+    <resultMap id="OrgRoleListMap" type="com.soft.common.mybatis.extend.entity.OrgTree">
+        <result column="ID" jdbcType="VARCHAR" property="id" />
+        <result column="CNTR_CD" jdbcType="VARCHAR" property="cntrCd" />
+        <result column="ORG_NM" jdbcType="VARCHAR" property="orgNm" />
+        <result column="ORG_CD_DIS" jdbcType="VARCHAR" property="orgCdDis" />
+        <result column="HIGHER_ORG_CD" jdbcType="VARCHAR" property="higherOrgCd" />
+        <result column="KEY_ROLE_NM" jdbcType="VARCHAR" property="keyRoleNm" />
+        <collection property="children" column="orgCdDis = ORG_CD_DIS, cntrCd = CNTR_CD, keyRoleNm = KEY_ROLE_NM" select="getSubOrg" javaType="java.util.ArrayList" ofType="com.soft.common.mybatis.extend.entity.OrgTree"/>
+        <collection property="subRoleList" column="id = id, cntrCd = CNTR_CD, keyRoleNm = KEY_ROLE_NM" select="getRole" javaType="java.util.ArrayList" ofType="com.soft.common.mybatis.extend.entity.MRoleEx"/>
+    </resultMap>
+    <resultMap id="mUserRoleMaps" type="com.soft.common.mybatis.extend.entity.MUserRoleEx">
+        <id column="ID" jdbcType="VARCHAR" property="id" />
+        <result column="CNTR_CD" jdbcType="VARCHAR" property="cntrCd" />
+        <result column="USER_ID" jdbcType="VARCHAR" property="userId" />
+        <result column="UPD_CNT" jdbcType="INTEGER" property="updCnt" />
+        <result column="DEL_FLG" jdbcType="VARCHAR" property="delFlg" />
+
+        <result column="uesrId" jdbcType="VARCHAR" property="loginId" />
+        <result column="sexCd" jdbcType="VARCHAR" property="generalNm" />
+        <result column="userKbn" jdbcType="VARCHAR" property="generalNm" />
+        <result column="GENERAL_CD" jdbcType="VARCHAR" property="generalCd" />
+        <result column="ROLE_ID" jdbcType="VARCHAR" property="roleId" />
+        <result column="ROLE_NM" jdbcType="VARCHAR" property="roleNm" />
+        <result column="ORG_ID" jdbcType="VARCHAR" property="orgId" />
+        <result column="ORG_CD_DIS" jdbcType="VARCHAR" property="orgCdDis" />
+        <result column="ORG_NM" jdbcType="VARCHAR" property="orgNm" />
+        <result column="DEF_CPY_FLG" jdbcType="VARCHAR" property="defCpyFlg" />
+        <result column="DEF_ORG_TYPE" jdbcType="VARCHAR" property="defOrgType" />
+        <result column="WORKGROUP_NM" jdbcType="VARCHAR" property="bzNm" />
+
+    </resultMap>
+    <resultMap id="mRoleListMap" type="com.soft.common.mybatis.extend.entity.MRoleEx" extends="com.soft.common.mapper.MRoleMapper.BaseResultMap">
+        <result column="ORG_NM" jdbcType="VARCHAR" property="orgNm" />
+        <result column="ORG_CD_DIS" jdbcType="VARCHAR" property="orgCdDis" />
+        <result column="ORG_ABBR" jdbcType="VARCHAR" property="orgAbbr" />
+        <result column="ORG_ENG_NM" jdbcType="VARCHAR" property="orgEngNm" />
+    </resultMap>
+
+    <select id="listRoleTree" resultMap="OrgRoleListMap">
+        SELECT
+            mo.ID,
+            mo.cntr_cd,
+            mo.ORG_NM,
+            mo.ORG_CD_DIS,
+            mo.HIGHER_ORG_CD,
+            #{roleNm} as KEY_ROLE_NM
+        FROM
+            m_org mo
+        <trim prefix="WHERE" prefixOverrides="AND|OR">
+            and mo.CNTR_CD = #{cntrCd}
+        <if test="orgId != '' and orgId != null">
+            and mo.id = #{orgId}
+        </if>
+        <if test="orgId == '' or orgId == null">
+            and (mo.HIGHER_ORG_CD = '' or mo.HIGHER_ORG_CD is null)
+        </if>
+            AND mo.DEL_FLG = '0'
+         <if test="roleNm != null and roleNm != '' ">
+            AND EXISTS (
+                SELECT
+                1
+                FROM
+                m_org mo1
+                INNER JOIN m_role mr1
+                ON mr1.ORG_ID = mo1.ID
+                WHERE
+                mo1.del_flg = '0'
+                and mr1.del_flg = '0'
+                and mo1.org_path LIKE concat('%', mo.ORG_PATH, '%')
+                <bind name="like_roleNm" value="'%' + roleNm + '%'"/>
+                    AND mr1.role_nm LIKE #{like_roleNm}
+            )
+         </if>
+        </trim>
+    </select>
+    <select id="getRole" resultMap="mRoleListMap">
+        SELECT
+        r.*, m.ORG_NM,m.ORG_ABBR,m.ORG_ENG_NM,m.ORG_CD_DIS
+        FROM
+        M_ROLE R
+        INNER JOIN M_ORG m ON m.ID = R.ORG_ID
+        AND M.CNTR_CD = R.CNTR_CD
+        AND M.DEL_FLG = '0'
+        WHERE R.ORG_ID = #{id}
+        AND R.CNTR_CD = #{cntrCd}
+        AND R.DEL_FLG = '0'
+        <if test="keyRoleNm != null and keyRoleNm != '' ">
+            <bind name="like_roleNm" value="'%' + keyRoleNm + '%'"/>
+            AND R.role_nm LIKE #{like_roleNm}
+        </if>
+    </select>
+    <select id="selectRoleUser" resultMap="BaseResultMap">
+        SELECT
+             u.*
+        FROM
+            m_user_role r
+        LEFT JOIN m_user u ON u.ID = r.USER_ID
+        LEFT JOIN m_role sr ON sr.ID = r.ROLE_ID
+        WHERE r.ROLE_ID=#{roleId}
+    </select>
+    <select id="getUserRole" resultMap="RoleListMap">
+        SELECT
+               DISTINCT sm.MODULE_CD
+               ,sm.ID AS parentId
+               ,sm.MODULE_NM
+               ,sm.MODULE_TYPE
+               ,u.USER_ID AS userId
+         FROM m_login u
+         LEFT JOIN m_user_role sr
+          ON u.USER_ID = sr.USER_ID
+         AND u.CNTR_CD = SR.CNTR_CD
+         AND sr.DEL_FLG = '0'
+         INNER JOIN m_role_module sr1
+          ON sr.ROLE_ID = sr1.ROLE_ID
+          AND SR.CNTR_CD = SR1.CNTR_CD
+          AND SR.DEL_FLG = '0'
+         INNER JOIN m_module sm
+          ON sr1.MODULE_ID = sm.id
+          <!--del by zwd20191231-->
+          <!--AND SR1.CNTR_CD = SM.CNTR_CD-->
+         WHERE u.USER_ID = #{userId}
+                and sm.PARENT_ID is null
+                and sm.ENABLED = '1'
+                and u.DEL_FLG = '0'
+                and sm.DEL_FLG = '0'
+    </select>
+    <select id="getChildren" resultMap="RoleListMap">
+        SELECT
+         M.ID AS parentId
+        ,M.MODULE_CD
+        ,M.MODULE_NM
+        ,M.MODULE_TYPE
+        ,MU.USER_ID AS userId
+        FROM M_USER MU
+        LEFT JOIN m_user_role UR
+         ON MU.USER_ID = UR.USER_ID
+         AND MU.CNTR_CD = UR.CNTR_CD
+         AND UR.DEL_FLG = '0'
+        INNER JOIN m_role_module MR
+         ON UR.ROLE_ID = MR.ROLE_ID
+         AND UR.CNTR_CD = MR.CNTR_CD
+         AND MR.DEL_FLG = '0'
+        INNER JOIN m_module M
+         ON MR.MODULE_ID = M.id
+<!--del by zwd20191231-->
+<!--         AND MR.CNTR_CD = M.CNTR_CD-->
+         AND M.DEL_FLG = '0'
+        WHERE MU.USER_ID = #{userId}
+        and  M.parent_id = #{parentId}
+        and  M.ENABLED = '1'
+        and  MU.DEL_FLG = '0'
+        and  M.DEL_FLG = '0'
+    </select>
+    <select id="getSubOrg" resultMap="OrgRoleListMap">
+        SELECT
+            mo.ID,
+            mo.cntr_cd,
+            mo.ORG_NM,
+            mo.ORG_CD_DIS,
+            mo.HIGHER_ORG_CD,
+            #{keyRoleNm} as KEY_ROLE_NM
+        FROM
+            m_org mo
+        WHERE mo.HIGHER_ORG_CD = #{orgCdDis}
+        AND mo.CNTR_CD = #{cntrCd}
+        AND mo.DEL_FLG = '0'
+        <if test="keyRoleNm != null and keyRoleNm != '' ">
+        AND EXISTS (
+            SELECT
+            1
+            FROM
+            m_org mo1
+            INNER JOIN m_role mr1
+            ON mr1.ORG_ID = mo1.ID
+            WHERE
+            mo1.del_flg = '0'
+            and mr1.del_flg = '0'
+            and mo1.org_path LIKE concat('%', mo.ORG_PATH, '%')
+                <bind name="like_roleNm" value="'%' + keyRoleNm + '%'"/>
+                AND mr1.role_nm LIKE #{like_roleNm}
+        )
+        </if>
+    </select>
+    <select id="selectMUserRoleList" resultMap="mUserRoleMaps">
+        SELECT
+        ur.*, l.LOGIN_ID,
+        g1.GENERAL_NM sexCd,
+        g2.GENERAL_NM userKbn,
+        r.ORG_ID,
+        o.ORG_CD_DIS,
+        o.ORG_NM,
+        ur.ROLE_ID,
+        r.ROLE_NM,
+        ur.DEF_CPY_FLG,
+        ur.DEF_ORG_TYPE,
+        mw.WORKGROUP_NM
+        FROM
+        M_USER_ROLE ur
+        INNER JOIN M_USER m ON m.USER_ID = ur.USER_ID
+        AND m.CNTR_CD = ur.CNTR_CD
+        AND ur.DEL_FLG = '0'
+        INNER JOIN M_LOGIN l ON m.USER_ID = l.USER_ID
+        AND m.CNTR_CD = l.CNTR_CD
+        AND l.DEL_FLG = '0'
+        INNER JOIN M_ROLE r ON ur.ROLE_ID = r.ID
+        AND m.CNTR_CD = r.CNTR_CD
+        AND r.DEL_FLG = '0'
+        INNER JOIN M_ORG o ON r.ORG_ID = o.ID
+        AND m.CNTR_CD = o.CNTR_CD
+        AND o.DEL_FLG = '0'
+        LEFT JOIN M_GENERAL g1 ON g1.GENERAL_MASTER_TYPE = 'SEX_CD'
+        AND m.SEX_CD = g1.GENERAL_CD
+        AND g1.DEL_FLG = '0'
+        LEFT JOIN M_GENERAL g2 ON g2.GENERAL_MASTER_TYPE = 'USER_KBN'
+        AND m.USER_KBN = g2.GENERAL_CD
+        AND g2.DEL_FLG = '0'
+        LEFT JOIN m_workgroup mw ON mw.id = ur.CHAR1
+        AND mw.DEL_FLG = '0'
+        AND mw.CNTR_CD = ur.CNTR_CD
+        WHERE m.DEL_FLG = '0'
+            AND m.CNTR_CD = #{cntrCd}
+        <if test="userId != null and userId != '' ">
+            AND m.USER_ID = #{userId}
+        </if>
+    </select>
+
+    <select id="selectMRoleList" resultMap="mRoleListMap">
+        SELECT
+        r.*, m.ORG_NM
+        FROM
+        M_ROLE r
+        INNER JOIN M_ORG m ON m.ID = R.ORG_ID
+        AND M.CNTR_CD = R.CNTR_CD
+        AND M.DEL_FLG = '0'
+        WHERE
+        1 = 1
+        AND m.DEL_FLG = '0'
+        <if test="cntrCd != null and cntrCd != '' ">
+            AND R.CNTR_CD = #{cntrCd}
+            AND M.CNTR_CD = #{cntrCd}
+        </if>
+        <if test="orgId != null and orgId != '' ">
+            AND r.ORG_ID = #{orgId}
+        </if>
+        <if test="roleNm != null and roleNm != '' ">
+            <bind name="like_roleNm" value="'%' + roleNm + '%'"/>
+            AND r.ROLE_NM LIKE #{like_roleNm}
+        </if>
+        and R.DEL_FLG = '0'
+    </select>
+</mapper>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.soft.common.mybatis.extend.dao.MOutFactoryLineListDao">
+  <resultMap id="BaseResultMap" type="com.soft.common.mybatis.extend.entity.MOutFactoryLineEx" extends="com.soft.common.mapper.MOutFactoryLineMapper.BaseResultMap">
+
+    <result column="PROD_NM" jdbcType="VARCHAR" property="prodNm" />
+    <result column="PROD_CD_DIS" jdbcType="VARCHAR" property="prodCdDis" />
+    <result column="ACCEPT_NM" jdbcType="VARCHAR" property="acceptNm" />
+    <result column="PROD_CLASS_ID" jdbcType="VARCHAR" property="prodClassId" />
+
+  </resultMap>
+
+  <select id="selectMOutFactoryLine" resultMap="BaseResultMap">
+    SELECT m.*                              <!--外发工厂表 -->
+    ,p.PROD_NM                    <!--商品名-->
+    ,p.PROD_CD_DIS              <!--商品编号-->
+    ,p.PROD_CLASS_ID            <!--商品分类ID-->
+    ,u.USER_NM ACCEPT_NM            <!--审批人-->
+    FROM M_OUT_FACTORY_LINE m
+    left join M_USER u
+    on m.ACCEPT_ID = u.USER_ID
+    and  u.DEL_FLG = '0'
+    left join M_PRODUCT p
+    on p.ID = m.PROD_ID
+    and  P.DEL_FLG = '0'
+    WHERE 1 = 1
+    AND m.DEL_FLG = '0'
+    AND m.OUT_FACTORY_ID = #{outFactoryId}
+
+  </select>
+
+</mapper>

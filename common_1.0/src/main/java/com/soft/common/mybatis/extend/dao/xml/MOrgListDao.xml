@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.MOrgListDao">
+	<resultMap id="mOrgMap" type="com.soft.common.mybatis.extend.entity.MOrgEx" extends="com.soft.common.mapper.MOrgMapper.BaseResultMap">
+		<result column="orgTypeNm" jdbcType="VARCHAR" property="orgTypeNm" />
+		<result column="isFinancialNm" jdbcType="VARCHAR" property="isFinancialNm" />
+		<result column="whNm" jdbcType="VARCHAR" property="whNm" />
+		<result column="higherOrgCdNm" jdbcType="VARCHAR" property="higherOrgCdNm" />
+	</resultMap>
+	<select id="selectMOrg" resultMap="mOrgMap">
+			SELECT m.*                            <!--组织部门表 -->
+					,g1.GENERAL_NM orgTypeNm       <!--组织部门类型名称 -->
+					,g2.GENERAL_NM isFinancialNm   <!--是否组织部门 -->
+					,w.WH_NM whNm                  <!--仓库名称 -->
+					,o.ORG_NM higherOrgCdNm        <!--上位组织部门名称 -->
+			  FROM M_ORG m
+			left join M_GENERAL g1 on g1.GENERAL_MASTER_TYPE = 'ORG_TYPE'
+		    and m.ORG_TYPE = g1.GENERAL_CD
+			and g1.DEL_FLG = '0'
+			left join M_GENERAL g2 on g2.GENERAL_MASTER_TYPE = 'IS_FINANCIAL'
+		    and m.IS_FINANCIAL = g2.GENERAL_CD
+			and g2.DEL_FLG = '0'
+			left join M_WH w
+			on m.WH_CD = w.ID
+			and m.CNTR_CD = w.CNTR_CD
+			and w.DEL_FLG = '0'
+			left join M_ORG o
+			on m.HIGHER_ORG_CD = o.ORG_CD_DIS
+			and m.CNTR_CD = o.CNTR_CD
+			and o.DEL_FLG = '0'
+			 WHERE 1 = 1
+		       AND m.DEL_FLG = '0'
+			<if test="cntrCd != null and cntrCd != '' ">
+			   AND m.CNTR_CD = #{cntrCd}
+			</if>
+			<if test="orgCdDis != null and orgCdDis != '' ">
+               <bind name="like_orgCdDis" value="'%' + orgCdDis + '%'"/>
+			   AND m.ORG_CD_DIS like #{like_orgCdDis}
+			</if>
+			<if test="orgNm != null and orgNm != '' ">
+				<bind name="like_orgNm" value="'%' + orgNm + '%'"/>
+			   AND m.ORG_NM like #{like_orgNm}
+			</if>
+            <if test="orgAbbr != null and orgAbbr != '' ">
+                <bind name="like_orgAbbr" value="'%' + orgAbbr + '%'"/>
+                AND m.ORG_ABBR like #{like_orgAbbr}
+            </if>
+            <if test="orgEngNm != null and orgEngNm != '' ">
+                <bind name="like_orgEngNm" value="'%' + orgEngNm + '%'"/>
+                AND m.ORG_ENG_NM like #{like_orgEngNm}
+            </if>
+		    order by m.ORG_CD_DIS,m.ORG_NM
+	</select>
+	<select id="selectMOrgLine" resultMap="mOrgMap">
+				SELECT m.*                      <!--组织部门表 -->
+						,g.GENERAL_NM orgTypeNm  <!--组织部门类型 -->
+						,w.WH_NM whNm            <!--仓库名称 -->
+		                ,o.ORG_NM higherOrgCdNm  <!--上位组织部门名称 -->
+				FROM M_ORG m
+				left join M_GENERAL g on g.GENERAL_MASTER_TYPE = 'ORG_TYPE'
+		        and m.ORG_TYPE = g.GENERAL_CD
+				and g.DEL_FLG = '0'
+				left join M_WH w
+				on m.WH_CD = w.WH_CD_DIS
+				and m.CNTR_CD = w.CNTR_CD
+				and w.DEL_FLG = '0'
+				left join M_ORG o
+				on m.HIGHER_ORG_CD = o.ORG_CD_DIS
+				and m.CNTR_CD = o.CNTR_CD
+				and o.DEL_FLG = '0'
+				WHERE 1 = 1
+				AND m.DEL_FLG = '0'
+				<if test="orgId != null and orgId != '' ">
+					AND m.ID = #{orgId}
+				</if>
+	</select>
+	<select id="countLeaf" resultType="java.lang.Integer">
+		SELECT
+		count(*)
+		FROM
+		m_org mo
+		where mo.HIGHER_ORG_CD = #{orgId}
+		and mo.CNTR_CD = #{cntrCd}
+	</select>
+
+</mapper>

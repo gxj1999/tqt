@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.soft.common.mybatis.extend.dao.MWorkgroupDao">
+
+   <resultMap id="MworkgroupListMap" type="com.soft.common.mybatis.extend.entity.WorkgroupEx" extends="com.soft.common.mapper.MWorkgroupMapper.BaseResultMap">
+       <result column="CNTR_NM" jdbcType="VARCHAR" property="cntrNm" />
+       <result column="ORG_NM" jdbcType="VARCHAR" property="orgNm" />
+       <result column="USER_NM" jdbcType="VARCHAR" property="userNm" />
+   </resultMap>
+
+    <select id="getMworkgroupList" resultMap="MworkgroupListMap">
+        SELECT
+        mw.*,
+        mc.CNTR_NM,
+        mo.ORG_NM,
+        mu.USER_NM
+        FROM m_workgroup mw
+        LEFT JOIN m_center mc ON mc.ID = mw.CNTR_CD
+        AND mc.DEL_FLG = '0'
+        LEFT JOIN M_ORG mo ON mo.ID = mw.ORG_ID
+        AND mo.DEL_FLG = '0'
+        LEFT JOIN M_USER mu ON mu.USER_ID = mw.CHARGE_USER_ID
+        AND mu.DEL_FLG = '0'
+        WHERE mw.DEL_FLG = '0'
+        <if test="cntrCd != null and cntrCd != '' ">
+           AND mw.CNTR_CD = #{cntrCd}
+        </if>
+        <if test="orgId != null and orgId != '' ">
+            AND mw.ORG_ID = #{orgId}
+        </if>
+        <if test="teamId != null and teamId != '' ">
+            <bind name="like_teamId" value="'%' + teamId + '%'"/>
+            AND mw.WORKGROUP_CD like #{like_teamId}
+        </if>
+        <if test="teamNm != null and teamNm != '' ">
+            <bind name="like_teamNm" value="'%' + teamNm + '%'"/>
+            AND mw.WORKGROUP_NM like #{like_teamNm}
+        </if>
+        ORDER BY mw.UPD_DT DESC
+    </select>
+</mapper>

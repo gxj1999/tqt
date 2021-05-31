@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.MBoxListDao">
+	<resultMap id="mBoxMap" type="com.soft.common.model.MBox" extends="com.soft.common.mapper.MBoxMapper.BaseResultMap" >
+	</resultMap>
+	<select id="selectMBox" resultMap="mBoxMap">
+			SELECT m.*       <!--箱一览 -->
+			  FROM M_BOX m
+			  WHERE 1 = 1
+				AND m.DEL_FLG = '0'
+			<if test="cntrCd != null and cntrCd != '' ">
+				AND m.CNTR_CD = #{cntrCd}
+			</if>
+			<if test="boxId != null and boxId != '' ">
+				AND m.ID = #{boxId}
+			</if>
+			<if test="boxNm != null and boxNm != '' ">
+				<bind name="like_cboxNm" value="'%' + carrierNm + '%'"/>
+				AND (m.CARRIER_NM like #{like_carrierNm} or m.CARRIER_JC like #{like_carrierNm})
+			</if>
+			order by m.BOX_CD_DIS,m.BOX_NM
+	</select>
+	<select id="selectMBoxList" resultMap="mBoxMap">
+		SELECT m.*
+		FROM M_BOX m
+		WHERE 1 = 1
+		AND m.DEL_FLG = '0'
+		AND m.ID = #{boxId}
+	</select>
+</mapper>

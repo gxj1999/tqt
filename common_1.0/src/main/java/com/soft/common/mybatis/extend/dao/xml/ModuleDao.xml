@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.soft.common.mybatis.extend.dao.ModuleDao">
+    <resultMap id="BaseResultMap" type="com.soft.common.mybatis.extend.entity.Module" extends="com.soft.common.mapper.MModuleMapper.BaseResultMap">
+        <collection property="children" column="id" select="selectChildren" javaType="java.util.ArrayList" ofType="com.soft.common.mybatis.extend.entity.Module"/>
+    </resultMap>
+    <resultMap id="RoleResultMap" type="com.soft.common.mybatis.extend.entity.Module" extends="com.soft.common.mapper.MModuleMapper.BaseResultMap">
+        <result column="role_code" jdbcType="VARCHAR" property="roleCode" />
+        <result column="role_relation_id" jdbcType="VARCHAR" property="roleRelationId" />
+        <collection property="children" column="parentId=id,roleCode=role_code,cntrCd=cntr_cd" select="selectRoleModule" javaType="java.util.ArrayList" ofType="com.soft.common.mybatis.extend.entity.Module"/>
+    </resultMap>
+    <select id="getModule" resultMap="BaseResultMap">
+        select * from m_module where ID = #{id}
+    </select>
+    <select id="selectTree" resultMap="BaseResultMap" parameterType="com.soft.common.mybatis.extend.entity.Module">
+        select *
+        from m_module
+        <trim prefix="WHERE" prefixOverrides="AND|OR">
+<!--            del by zwd20191231-->
+<!--            <if test="cntrCd != null">-->
+<!--                and CNTR_CD = #{cntrCd}-->
+<!--            </if>-->
+            <if test="parentId == null">
+                and (PARENT_ID is null or PARENT_ID = '')
+            </if>
+            <if test="parentId != null">
+                and PARENT_ID = #{parentId}
+            </if>
+            <if test="moduleCd != null and moduleCd !=''">
+                <bind name="like_text" value="'%' + moduleCd + '%'"/>
+                and MODULE_CD like #{like_text}
+            </if>
+            <if test="moduleNm != null and moduleNm != ''">
+                <bind name="like_text" value="'%' + moduleNm + '%'"/>
+                and MODULE_NM like #{like_text}
+            </if>
+            <if test="enabled != null">
+                and ENABLED = '1'
+            </if>
+            and DEL_FLG = '0'
+        </trim>
+        order by SORT, MODULE_CD
+    </select>
+    <select id="selectChildren" resultMap="BaseResultMap">
+        select * from m_module where PARENT_ID = #{id}
+        and DEL_FLG = '0'
+    </select>
+    <select id="selectUserModule" resultMap="com.soft.common.mapper.MModuleMapper.BaseResultMap">
+/*        select m.*
+          from m_user u
+         inner join m_role_module r
+            --on r.relation_type = 'role_module'
+           on r.value_left = u.login_type
+         inner join sys_module m
+            on m.id = r.value_right
+        where u.id = #{userId} and m.type = '00';*/
+/*        select m.*
+        from M_USER_ROLE u
+        inner join m_role_module r
+        on*/
+
+    </select>
+    <select id="selectRoleModule" resultMap="com.soft.common.mybatis.extend.dao.ModuleDao.RoleResultMap">
+        select m.*
+        <if test="roleCode != null and roleCode != ''">
+               ,r.id as role_relation_id
+              ,r.role_id as role_code
+          from m_module m
+          left join m_role_module r
+            on r.MODULE_ID = m.ID
+            <!--del by zwd20191231-->
+            <!-- and m.CNTR_CD = #{cntrCd} -->
+            and r.role_id = #{roleCode}
+            and r.del_flg = '0'
+        </if>
+        <if test="roleCode == null or roleCode == ''">
+            ,'' as role_relation_id
+            ,'' as role_code
+            from m_module m
+        </if>
+        <trim prefix="WHERE" prefixOverrides="AND|OR">
+            <!--del by zwd20191231-->
+            <!-- and m.CNTR_CD = #{cntrCd} -->
+          <if test="parentId == null">
+            and (m.parent_id is null or m.parent_id = '')
+          </if>
+          <if test="parentId != null">
+            and m.PARENT_ID = #{parentId}
+          </if>
+        </trim>
+            and m.del_flg = '0'
+          order by m.SORT,m.MODULE_CD;
+    </select>
+
+    <insert id="insertRoleModule"  parameterType="com.soft.common.mybatis.extend.entity.UpdateRelation">
+        INSERT INTO m_role_module (
+            ID
+            ,CNTR_CD
+            ,ROLE_ID
+            ,MODULE_ID
+            ,RELATION_VALUE
+            ,RELATION_STATUS
+            ,ADD_ENT_KBN
+            ,ADD_PGM_ID
+            ,ADD_USER_ID
+            ,ADD_USER_NM
+            ,ADD_TNMT_ID
+            ,ADD_DT
+            ,UPD_ENT_KBN
+            ,UPD_PGM_ID
+            ,UPD_USER_ID
+            ,UPD_USER_NM
+            ,UPD_TNMT_ID
+            ,UPD_DT
+
+        ) SELECT
+             UUID()
+            ,CNTR_CD
+            ,#{roleId}
+            ,MODULE_ID
+            ,RELATION_VALUE
+            ,RELATION_STATUS
+            ,#{addEntKbn}
+            ,#{addPgmId}
+            ,#{addUserId}
+            ,#{addUserNm}
+            ,#{addTnmtId}
+            ,NOW()
+            ,#{updEntKbn}
+            ,#{updPgmId}
+            ,#{updUserId}
+            ,#{updUserNm}
+            ,#{updTnmtId}
+            ,NOW()
+        FROM m_role_module
+        WHERE ROLE_ID = '1'
+        <if test="moduleIdList != null">
+            AND MODULE_ID IN
+            <foreach collection="moduleIdList" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </insert>
+</mapper>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.soft.common.mybatis.extend.dao.TFactoryAppraiseListDao">
+  <resultMap id="tFactoryAppraiseMap" type="com.soft.common.mybatis.extend.entity.TFactoryAppraiseList">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <result column="ID" jdbcType="VARCHAR" property="id" />
+    <result column="CNTR_CD" jdbcType="VARCHAR" property="cntrCd" />
+    <result column="ORG_ID" jdbcType="VARCHAR" property="orgId" />
+    <result column="OUT_FACTORY_CD" jdbcType="VARCHAR" property="outFactoryCd" />
+    <result column="APPRAISE_TYPE" jdbcType="VARCHAR" property="appraiseType" />
+    <result column="COMMON_CD" jdbcType="VARCHAR" property="commonCd" />
+    <result column="APPRAISE_LEVEL" jdbcType="VARCHAR" property="appraiseLevel" />
+    <result column="REMARKS" jdbcType="VARCHAR" property="remarks" />
+    <result column="CHARACTER1" jdbcType="VARCHAR" property="character1" />
+    <result column="CHARACTER2" jdbcType="VARCHAR" property="character2" />
+    <result column="CHARACTER3" jdbcType="VARCHAR" property="character3" />
+    <result column="CHARACTER4" jdbcType="VARCHAR" property="character4" />
+    <result column="CHARACTER5" jdbcType="VARCHAR" property="character5" />
+    <result column="NUM1" jdbcType="VARCHAR" property="num1" />
+    <result column="NUM2" jdbcType="VARCHAR" property="num2" />
+    <result column="NUM3" jdbcType="VARCHAR" property="num3" />
+    <result column="NUM4" jdbcType="VARCHAR" property="num4" />
+    <result column="NUM5" jdbcType="VARCHAR" property="num5" />
+    <result column="UPD_CNT" jdbcType="INTEGER" property="updCnt" />
+    <result column="DEL_FLG" jdbcType="VARCHAR" property="delFlg" />
+    <result column="ADD_ENT_KBN" jdbcType="VARCHAR" property="addEntKbn" />
+    <result column="ADD_PGM_ID" jdbcType="VARCHAR" property="addPgmId" />
+    <result column="ADD_USER_ID" jdbcType="VARCHAR" property="addUserId" />
+    <result column="ADD_USER_NM" jdbcType="VARCHAR" property="addUserNm" />
+    <result column="ADD_TNMT_ID" jdbcType="VARCHAR" property="addTnmtId" />
+    <result column="ADD_DT" jdbcType="TIMESTAMP" property="addDt" />
+    <result column="UPD_ENT_KBN" jdbcType="VARCHAR" property="updEntKbn" />
+    <result column="UPD_PGM_ID" jdbcType="VARCHAR" property="updPgmId" />
+    <result column="UPD_USER_ID" jdbcType="VARCHAR" property="updUserId" />
+    <result column="UPD_USER_NM" jdbcType="VARCHAR" property="updUserNm" />
+    <result column="UPD_TNMT_ID" jdbcType="VARCHAR" property="updTnmtId" />
+    <result column="UPD_DT" jdbcType="TIMESTAMP" property="updDt" />
+    <result column="orgNm" jdbcType="VARCHAR" property="orgNm" />
+    <result column="factoryNm" jdbcType="VARCHAR" property="factoryNm" />
+    <result column="appraiseTypeNm" jdbcType="VARCHAR" property="appraiseTypeNm" />
+  </resultMap>
+
+  <select id="selectTFactoryAppraise" resultMap="tFactoryAppraiseMap">
+    SELECT t.*                          <!--客户评价 -->
+    ,m.OUT_FACTORY_NM factoryNm   <!--工厂编号 -->
+    ,g.GENERAL_NM appraiseTypeNm     <!--评价等级 -->
+    FROM T_FACTORY_APPRAISE t
+    left join M_GENERAL g ON g.GENERAL_MASTER_TYPE = 'APPRAISE_TYPE'
+    and t.APPRAISE_TYPE = g.GENERAL_CD
+    AND g.DEL_FLG = '0'
+    left join M_OUT_FACTORY m
+    ON m.ID = t.OUT_FACTORY_CD
+    and m.CNTR_CD = t.CNTR_CD
+    AND m.DEL_FLG = '0'
+    WHERE 1 = 1
+    AND m.DEL_FLG = '0'
+    AND m.ID = #{factoryId}
+  </select>
+</mapper>

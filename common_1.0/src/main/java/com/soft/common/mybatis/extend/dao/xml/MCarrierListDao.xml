@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.MCarrierListDao">
+	<resultMap id="mCarrierMap" type="com.soft.common.mybatis.extend.entity.MCarrierEx" extends="com.soft.common.mapper.MCarrierMapper.BaseResultMap" >
+        <result column="carrierTypeNm" jdbcType="VARCHAR" property="carrierTypeNm" />
+		<result column="ownUserIdNm" jdbcType="VARCHAR" property="ownUserIdNm" />
+		<result column="acceptIdNm" jdbcType="VARCHAR" property="acceptIdNm" />
+        <result column="cntryCdNm" jdbcType="VARCHAR" property="cntryCdNm" />
+        <result column="levelNm" jdbcType="VARCHAR" property="levelNm" />
+        <result column="paymentTypeNm" jdbcType="VARCHAR" property="paymentTypeNm" />
+	</resultMap>
+	<resultMap id="mCarriersMap" type="com.soft.common.mybatis.extend.entity.MCarrierEx" extends="com.soft.common.mapper.MCarrierMapper.BaseResultMap">
+		<result column="carrierTypeNm" jdbcType="VARCHAR" property="carrierTypeNm" />
+		<result column="cntryCdNm" jdbcType="VARCHAR" property="cntryCdNm" />
+		<result column="levelNm" jdbcType="VARCHAR" property="levelNm" />
+		<result column="USER_ID" jdbcType="VARCHAR" property="userId" />
+		<result column="ownUserIdNm" jdbcType="VARCHAR" property="ownUserIdNm" />
+		<result column="acceptIdNm" jdbcType="VARCHAR" property="acceptIdNm" />
+		<collection column="{id=id,carrierId=ID}" property="children" ofType="com.soft.common.model.MCarrierLine" javaType="java.util.ArrayList" select="selectCarrierLine" />
+	</resultMap>
+    <resultMap id="mCarrierLineListMap" type="com.soft.common.mybatis.extend.entity.MCarrierLineEx" extends="com.soft.common.mapper.MCarrierLineMapper.BaseResultMap">
+        <result column="unitNm" jdbcType="VARCHAR" property="unitNm" />
+        <result column="acceptNm" jdbcType="VARCHAR" property="acceptNm" />
+    </resultMap>
+	<select id="selectMCarrier" resultMap="mCarrierMap">
+			SELECT m.*                       <!--物流公司表 -->
+					,g.GENERAL_NM carrierTypeNm  <!--物流公司类型 -->
+					,u1.USER_NM ownUserIdNm       <!--本公司联络人 -->
+					,u2.USER_NM acceptIdNm        <!--审批人 -->
+                    ,l.LEVEL_NM levelNm           <!--评价等级 -->
+                    ,g1.GENERAL_NM paymentTypeNm  <!--结算方式 -->
+                    ,g2.GENERAL_NM cntryCdNm      <!--国家 -->
+			  FROM M_CARRIER m
+			  left join M_GENERAL g ON g.GENERAL_MASTER_TYPE = 'CARRIER_TYPE'
+			  and m.CARRIER_TYPE = g.GENERAL_CD
+			  and g.DEL_FLG = '0'
+              left join M_GENERAL g1 ON g1.GENERAL_MASTER_TYPE = 'PAYMENT_TYPE'
+              and m.PAYMENT_TYPE = g1.GENERAL_CD
+              and g1.DEL_FLG = '0'
+              left join M_LEVEL l
+              on m.LEVEL_ID = l.ID
+              and l.DEL_FLG = '0'
+              left join M_GENERAL g2 ON g2.GENERAL_MASTER_TYPE = 'CNTRY_CD'
+              and m.CNTRY_CD = g2.GENERAL_CD
+              and g2.DEL_FLG = '0'
+			  left join M_USER u1
+			  on m.OWN_USER_ID = u1.USER_ID
+			  and u1.DEL_FLG = '0'
+			  left join M_USER u2
+			  on m.ACCEPT_ID = u2.USER_ID
+			  and u2.DEL_FLG = '0'
+			  WHERE 1 = 1
+				AND m.DEL_FLG = '0'
+			<if test="carrierCdDis != null and carrierCdDis != '' ">
+				<bind name="like_carrierCdDis" value="'%' + carrierCdDis + '%'"/>
+				AND m.CARRIER_CD_DIS like #{like_carrierCdDis}
+			</if>
+			<if test="carrierNm != null and carrierNm != '' ">
+				<bind name="like_carrierNm" value="'%' + carrierNm + '%'"/>
+				AND m.CARRIER_NM like #{like_carrierNm}
+			</if>
+			<if test="carrierNmEn != null and carrierNmEn != '' ">
+				<bind name="like_carrierNmEn" value="'%' + carrierNmEn + '%'"/>
+				AND m.CARRIER_NM_EN like #{like_carrierNmEn}
+			</if>
+			<if test="carrierJc != null and carrierJc != '' ">
+				<bind name="like_carrierJc" value="'%' + carrierJc + '%'"/>
+				AND m.CARRIER_JC like #{like_carrierJc}
+			</if>
+			<if test="carrierType != null and carrierType != '' ">
+				AND m.CARRIER_TYPE = #{carrierType}
+			</if>
+			<if test="levelId != null and levelId != '' ">
+				AND m.LEVEL_ID = #{levelId}
+			</if>
+			<if test="cntryCd != null and cntryCd != '' ">
+				AND m.CNTRY_CD = #{cntryCd}
+			</if>
+			<if test="paymentType != null and paymentType != '' ">
+				AND m.PAYMENT_TYPE = #{paymentType}
+			</if>
+			order by m.CARRIER_CD_DIS,m.CARRIER_NM
+	</select>
+	<select id="selectMCarrierLine" resultMap="mCarriersMap">
+			SELECT   m.*                          <!--物流公司信息-->
+					,g1.GENERAL_NM carrierTypeNm  <!--物流公司类型 -->
+					,l.LEVEL_NM levelNm           <!--评价等级 -->
+					,g2.GENERAL_NM cntryCdNm      <!--国家 -->
+					,u1.USER_NM ownUserIdNm       <!--本公司联络人 -->
+					,u2.USER_NM acceptIdNm        <!--审批人 -->
+			FROM M_CARRIER m
+			 left join M_GENERAL g1 ON g1.GENERAL_MASTER_TYPE = 'CARRIER_TYPE'
+			  and m.CARRIER_TYPE = g1.GENERAL_CD
+			  and g1.DEL_FLG = '0'
+			   left join M_LEVEL l
+			  on m.LEVEL_ID = l.ID
+			  and l.DEL_FLG = '0'
+			   left join M_GENERAL g2 ON g2.GENERAL_MASTER_TYPE = 'CNTRY_CD'
+			  and m.CNTRY_CD = g2.GENERAL_CD
+			  and g2.DEL_FLG = '0'
+			  left join M_USER u1
+			  on m.OWN_USER_ID = u1.USER_ID
+			  and u1.DEL_FLG = '0'
+			  left join M_USER u2
+			  on m.ACCEPT_ID = u2.USER_ID
+			  and u2.DEL_FLG = '0'
+			WHERE 1 = 1
+			AND m.DEL_FLG = '0'
+				AND m.ID = #{carrierId}
+
+	</select>
+	<select id="selectCarrierLine"   resultMap="mCarrierLineListMap">
+			  SELECT l.*                 <!--物流公司明细表 -->
+			  		  ,g.GENERAL_NM unitNm  <!--计量单位 -->
+			  		  ,u.USER_NM acceptNm <!--审批人 -->
+				FROM M_CARRIER_LINE l
+				left join M_USER u
+				  on l.ACCEPT_ID = u.USER_ID
+				  and u.DEL_FLG = '0'
+				  left join M_GENERAL g on g.GENERAL_MASTER_TYPE = 'UNIT'
+				  and l.UNIT = g.GENERAL_CD
+				  and g.DEL_FLG = '0'
+				WHERE l.CARRIER_ID = #{carrierId}
+				  AND l.DEL_FLG = '0'
+				  order by l.CARRIER_LINE_NUM
+		</select>
+</mapper>

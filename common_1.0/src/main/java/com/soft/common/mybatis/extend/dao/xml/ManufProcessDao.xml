@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.ManufProcessDao">
+    <resultMap id="ManufProcessMap" type="com.soft.common.mybatis.extend.entity.ManufProcessEx" extends="com.soft.common.mapper.MManufProcessMapper.BaseResultMap">
+        <result column="generalCd" jdbcType="VARCHAR" property="generalCd"/>
+        <result column="GENERAL_NM" jdbcType="VARCHAR" property="generalNm"/>
+        <result column="KEY_MANUF_PROCESS_NM" jdbcType="VARCHAR" property="keyManufProcessNm"/>
+        <result column="manufProcessClsNm" jdbcType="VARCHAR" property="manufProcessClsNm"/>
+        <result column="orgNm" jdbcType="VARCHAR" property="orgNm"/>
+        <collection column="generalCd = generalCd,keyManufProcessNm = KEY_MANUF_PROCESS_NM" property="children" ofType="com.soft.common.mybatis.extend.entity.ManufProcessEx" javaType="java.util.ArrayList" select="selectLine"/>
+    </resultMap>
+    <resultMap id="ManufProcessListMap" type="com.soft.common.mybatis.extend.entity.ManufProcessEx" extends="com.soft.common.mapper.MManufProcessMapper.BaseResultMap">
+        <result column="generalCd" jdbcType="VARCHAR" property="generalCd"/>
+        <result column="GENERAL_NM" jdbcType="VARCHAR" property="generalNm"/>
+        <result column="manufProcessClsNm" jdbcType="VARCHAR" property="manufProcessClsNm"/>
+        <collection column="generalCd = generalCd" property="children" ofType="com.soft.common.mybatis.extend.entity.ManufProcessEx" javaType="java.util.ArrayList" select="selectLineList"/>
+    </resultMap>
+    <resultMap id="ManufLineMap" type="com.soft.common.mybatis.extend.entity.ManufProcessExLine" extends="com.soft.common.mapper.MManufProcessMapper.BaseResultMap">
+        <result column="processSort" jdbcType="INTEGER" property="processSort"/>
+        <result column="standardMpId" jdbcType="VARCHAR" property="standardMpId"/>
+        <result column="orgNm" jdbcType="VARCHAR" property="orgNm"/>
+    </resultMap>
+    <resultMap id="StandardMap" type="com.soft.common.model.MStandardMp" extends="com.soft.common.mapper.MStandardMpMapper.BaseResultMap">
+    </resultMap>
+    <select id="selectManufProList" resultMap="ManufProcessMap">
+        SELECT
+        G.GENERAL_CD generalCd,
+        G.GENERAL_NM manufProcessClsNm,
+        #{manufProcessNm} as KEY_MANUF_PROCESS_NM,
+        '' as orgNm
+        FROM
+          M_GENERAL g
+        INNER join M_MANUF_PROCESS mg ON  mg.MANUF_PROCESS_CLS = g.GENERAL_CD
+        and mg.DEL_FLG = '0'
+        WHERE 1 = 1
+        and g.GENERAL_MASTER_TYPE = 'MANUF_PROCESS_CLS'
+        and g.DEL_FLG = '0'
+        <if test="manufProcessNm != null and manufProcessNm != '' ">
+            <bind name="like_manufProcessNm" value="'%' + manufProcessNm + '%'"/>
+            AND mg.MANUF_PROCESS LIKE #{like_manufProcessNm}
+        </if>
+        <if test="manufProcessCls != null and manufProcessCls != '' ">
+            AND G.GENERAL_CD = #{manufProcessCls}
+        </if>
+        <if test="orgId != null and orgId != '' ">
+            AND mg.ORG_ID = #{orgId}
+        </if>
+        GROUP BY G.GENERAL_CD
+        order by G.GENERAL_CD
+    </select>
+    <select id="selectLine" resultMap="ManufLineMap">
+        SELECT
+          mm.*,
+          mo.ORG_NM orgNm,
+          #{keyManufProcessNm} as KEY_MANUF_PROCESS_NM
+        FROM M_MANUF_PROCESS mm
+        LEFT JOIN M_ORG mo ON mo.ID = mm.ORG_ID
+        and mo.DEL_FLG = '0'
+        WHERE 1 = 1
+        and mm.DEL_FLG = '0'
+        AND mm.MANUF_PROCESS_CLS = #{generalCd}
+        <if test="keyManufProcessNm != null and keyManufProcessNm != '' ">
+            <bind name="like_keyManufProcessNm" value="'%' + keyManufProcessNm + '%'"/>
+            AND mm.MANUF_PROCESS LIKE #{like_keyManufProcessNm}
+        </if>
+        order by mm.MANUF_PROCESS
+    </select>
+    <select id="selectManufProcess" resultMap="ManufProcessListMap">
+        SELECT
+        G.GENERAL_CD generalCd,
+        G.GENERAL_NM manufProcessClsNm
+        FROM
+        M_GENERAL g
+        WHERE 1 = 1
+        and g.GENERAL_MASTER_TYPE = 'MANUF_PROCESS_CLS'
+        and g.DEL_FLG = '0'
+        order by G.GENERAL_CD
+    </select>
+    <select id="selectLineList" resultMap="com.soft.common.mapper.MManufProcessMapper.BaseResultMap">
+        SELECT
+          mm.*
+        FROM M_MANUF_PROCESS mm
+        WHERE 1 = 1
+        and mm.DEL_FLG = '0'
+        AND mm.MANUF_PROCESS_CLS = #{generalCd}
+        order by mm.MANUF_PROCESS
+    </select>
+    <select id="selectThisManufProcess" resultMap="ManufLineMap">
+        SELECT
+            mmp.*,
+            msm.STANDARD_MP_ID standardMpId,
+            msm.PROCESS_SORT processSort
+        FROM
+            M_MANUF_PROCESS mmp
+        LEFT JOIN M_STANDARD_MP_LINE msm ON msm.MANUF_PROCESS_ID = mmp.ID
+        AND msm.DEL_FLG = '0'
+        WHERE
+            mmp.DEL_FLG = '0'
+            <if test="standardMpId != null and standardMpId != '' ">
+                AND msm.STANDARD_MP_ID = #{standardMpId}
+            </if>
+            group by mmp.ID
+        ORDER BY msm.PROCESS_SORT
+    </select>
+    <select id="selectStandardMpList" resultMap="StandardMap">
+        SELECT
+          mm.*
+        FROM M_STANDARD_MP mm
+        WHERE 1 = 1
+        and mm.DEL_FLG = '0'
+        <if test="standardMpNm != null and standardMpNm != '' ">
+            <bind name="like_standardMpNm" value="'%' + standardMpNm + '%'"/>
+            AND mm.STANDARD_MP_NM like #{like_standardMpNm}
+        </if>
+        order by mm.STANDARD_MP_NM
+    </select>
+</mapper>

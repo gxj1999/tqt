@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.MCenterListDao">
+	<resultMap id="mGeneralMap" type="com.soft.common.model.MCenter" extends="com.soft.common.mapper.MCenterMapper.BaseResultMap">
+	</resultMap>
+
+	<select id="selectMCenter"  resultMap="mGeneralMap">
+		SELECT
+		*                    <!--共通CODE表 -->
+		FROM M_CENTER
+		WHERE 1 = 1
+		AND DEL_FLG = '0'
+		<if test="cntrType != null and cntrType != '' ">
+			AND CNTR_TYPE = #{cntrType}
+		</if>
+	</select>
+
+    <select id="getCentrList" resultMap="mGeneralMap">
+        SELECT
+            *
+        FROM
+            M_CENTER c
+        WHERE
+            c.del_flg = '0'
+        <if test="cntrCdDis != null and cntrCdDis != '' ">
+            <bind name="like_cntrCdDis" value="'%' + cntrCdDis + '%'"/>
+            AND c.CNTR_CD_DIS like #{like_cntrCdDis}
+        </if>
+        <if test="cntrNm != null and cntrNm != '' ">
+            <bind name="like_cntrNm" value="'%' + cntrNm + '%'"/>
+            AND c.CNTR_NM like #{like_cntrNm}
+        </if>
+        <if test="cntrNmDis != null and cntrNmDis != '' ">
+            <bind name="like_cntrNmDis" value="'%' + cntrNmDis + '%'"/>
+            AND c.CNTR_NM_DIS like #{like_cntrNmDis}
+        </if>
+        <if test="cntrType != null and cntrType != '' ">
+            <bind name="like_cntrType" value="'%' + cntrType + '%'"/>
+            AND c.CNTR_TYPE like #{like_cntrType}
+        </if>
+    </select>
+
+</mapper>

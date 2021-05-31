@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.BorrowTakeListDao">
+	<resultMap id="borrowTakeListdMap" type="com.soft.common.mybatis.extend.entity.BorrowTakeEx">
+	 	<id column="ID" jdbcType="VARCHAR"  property="id" />
+	    <result column="WH_ID" jdbcType="VARCHAR"  property="whId" />
+	    <result column="LOC_ID" jdbcType="VARCHAR"  property="locId" />
+	    <result column="PROD_ID"  jdbcType="VARCHAR"  property="prodId" />
+		<result column="BATCH_NO"  jdbcType="VARCHAR"  property="batchNo" />
+	    <result column="COLOR_CD" jdbcType="VARCHAR" property="colorCd" />
+	    <result column="COLOR_SYSTEM" jdbcType="VARCHAR" property="colorSystem" />
+	    <result column="COLOR_NM" jdbcType="VARCHAR" property="colorNM" />
+		<result column="LOT1"  jdbcType="VARCHAR"  property="lot1" />
+		<result column="LOT2" jdbcType="VARCHAR" property="lot2" />
+		<result column="STK_CLS" jdbcType="VARCHAR" property="stkCls" />
+		<result column="LOC_TYPE" jdbcType="VARCHAR" property="locType" />
+		<result column="UPD_CNT" jdbcType="INTEGER" property="updCnt" />
+	</resultMap>
+
+	<select id="selectBorrowTakeList" resultMap="borrowTakeListdMap">
+			SELECT tb.WH_ID
+						,tb.LOC_ID              <!--库位编号 -->
+						,tb.PROD_ID             <!--商品编号 -->
+						,tb.BATCH_NO            <!--缸号 -->
+						,ts.COLOR_CD            <!--色号 -->
+						,ts.COLOR_SYSTEM        <!--色系 -->
+						,ts.COLOR_NM            <!--色别 -->
+						,ts.LOT1                <!--生产批次号1 -->
+						,ts.LOT2                <!--生产批次号2 -->
+						,ts.STK_CLS             <!--在库区分 -->
+						,m.LOC_TYPE             <!--库位类型 -->
+			FROM t_borrow_take_register tb
+			LEFT JOIN t_stock_hand ts
+			ON tb.WH_ID = ts.WH_ID
+			and tb.CNTR_CD = ts.CNTR_CD
+		    AND ts.DEL_FLG = '0'
+			LEFT JOIN m_loc m
+			ON ts.LOC_ID = m.LOC_CD_DIS
+			and ts.CNTR_CD = m.CNTR_CD
+		    AND m.DEL_FLG = '0'
+				WHERE 1 = 1
+		        AND tb.DEL_FLG = '0'
+			<if test="whId != null and whId != '' ">
+				AND tb.WH_ID = #{whId}
+			</if>
+			<if test="locId != null and locId != '' ">
+				AND tb.LOC_ID = #{locId}
+			</if>
+			<if test="prodId != null and prodId != '' ">
+				AND tb.PROD_ID = #{prodId}
+			</if>
+			<if test="locType != null and locType != '' ">
+				AND m.LOC_TYPE = #{locType}
+			</if>
+			<if test="stkCls != null and stkCls != '' ">
+				AND ts.STK_CLS = #{stkCls}
+			</if>
+
+	</select>
+	<select id="selectBorrowTakeInfo" resultMap="borrowTakeListdMap">
+		SELECT tb.WH_ID
+		,tb.LOC_ID              <!--库位编号 -->
+		,tb.PROD_ID             <!--商品编号 -->
+		,tb.BATCH_NO            <!--缸号 -->
+		,ts.COLOR_CD            <!--色号 -->
+		,ts.COLOR_SYSTEM        <!--色系 -->
+		,ts.COLOR_NM            <!--色别 -->
+		,ts.LOT1                <!--生产批次号1 -->
+		,ts.LOT2                <!--生产批次号2 -->
+		,ts.STK_CLS             <!--在库区分 -->
+		,m.LOC_TYPE             <!--库位类型 -->
+		,tb.UPD_CNT             <!--取样次数 -->
+		FROM t_borrow_take_register tb
+		LEFT JOIN t_stock_hand ts
+		ON tb.WH_ID = ts.WH_ID
+		and tb.CNTR_CD = ts.CNTR_CD
+		AND ts.DEL_FLG = '0'
+		LEFT JOIN m_loc m
+		ON ts.LOC_ID = m.LOC_CD_DIS
+		and ts.CNTR_CD = m.CNTR_CD
+		AND m.DEL_FLG = '0'
+		WHERE 1 = 1
+		AND tb.DEL_FLG = '0'
+		AND tb.WH_ID = #{whId}
+		AND tb.LOC_ID = #{locId}
+		AND tb.PROD_ID = #{prodId}
+		AND m.BATCH_NO = #{batchNo}
+	</select>
+</mapper>

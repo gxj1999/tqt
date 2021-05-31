@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.MSupplierListDao">
+	<resultMap id="mSupplierMap" type="com.soft.common.mybatis.extend.entity.MSupplierEx" extends="com.soft.common.mapper.MSupplierMapper.BaseResultMap">
+		<result column="supplierTypeNm" jdbcType="VARCHAR" property="supplierTypeNm" />
+		<result column="paymentTypeNm" jdbcType="VARCHAR" property="paymentTypeNm" />
+		<result column="levelNm" jdbcType="VARCHAR" property="levelNm" />
+		<result column="ownUserIdNm" jdbcType="VARCHAR" property="ownUserIdNm" />
+        <result column="acceptIdNm" jdbcType="VARCHAR" property="acceptIdNm" />
+		<result column="ownUserId" jdbcType="VARCHAR" property="ownUserId" />
+		<result column="cntryCdNm" jdbcType="VARCHAR" property="cntryCdNm" />
+		<collection column="{id=id,supplierId=ID}" property="children" ofType="com.soft.common.mybatis.extend.entity.MSupplierLineEx" javaType="java.util.ArrayList" select="selectSupplierLine"/>
+	</resultMap>
+	<resultMap id="mSupplierLineListMap" type="com.soft.common.mybatis.extend.entity.MSupplierLineEx" extends="com.soft.common.mapper.MSupplierLineMapper.BaseResultMap">
+		<result column="prodNm" jdbcType="VARCHAR" property="prodNm" />
+		<result column="acceptIdNm" jdbcType="VARCHAR" property="acceptIdNm" />
+		<result column="prodClassId" jdbcType="VARCHAR" property="prodClassId" />
+		<result column="prodCdDis" jdbcType="VARCHAR" property="prodCdDis" />
+	</resultMap>
+	<resultMap id="mSuppliersMap" type="com.soft.common.mybatis.extend.entity.MSupplierEx" extends="com.soft.common.mapper.MSupplierMapper.BaseResultMap">
+		<result column="supplierTypeNm" jdbcType="VARCHAR" property="supplierTypeNm" />
+		<result column="paymentTypeNm" jdbcType="VARCHAR" property="paymentTypeNm" />
+		<result column="levelNm" jdbcType="VARCHAR" property="levelNm" />
+		<result column="ownUserIdNm" jdbcType="VARCHAR" property="ownUserIdNm" />
+		<result column="ownUserId" jdbcType="VARCHAR" property="userNm" />
+		<result column="prodNm" jdbcType="VARCHAR" property="prodNm" />
+		<result column="acceptIdNm" jdbcType="VARCHAR" property="acceptIdNm" />
+		<result column="cntryCdNm" jdbcType="VARCHAR" property="cntryCdNm" />
+	</resultMap>
+
+	<select id="selectMSupplier" resultMap="mSuppliersMap">
+			SELECT m.*             <!--供应商表 -->
+					,g1.GENERAL_NM supplierTypeNm    <!--供应商类型 -->
+					,g2.GENERAL_NM paymentTypeNm     <!--结算方式 -->
+					,l.LEVEL_NM levelNm              <!--评价等级 -->
+					,u.USER_NM ownUserIdNm           <!--本公司联络人 -->
+					,g3.GENERAL_NM cntryCdNm         <!--国家 -->
+			FROM M_SUPPLIER m
+			left join M_GENERAL g1 ON g1.GENERAL_MASTER_TYPE = 'SUPPLIER_TYPE'
+			and m.SUPPLIER_TYPE = g1.GENERAL_CD
+			and g1.DEL_FLG = '0'
+			left join M_GENERAL g2 ON g2.GENERAL_MASTER_TYPE = 'PAYMENT_TYPE'
+			and m.PAYMENT_TYPE = g2.GENERAL_CD
+			and g2.DEL_FLG = '0'
+			left join M_GENERAL g3 ON g3.GENERAL_MASTER_TYPE = 'CNTRY_CD'
+			and m.CNTRY_CD = g3.GENERAL_CD
+			and g3.DEL_FLG = '0'
+			left join M_LEVEL l
+			on m.LEVEL_ID = l.ID
+			and l.DEL_FLG = '0'
+			left join M_USER u
+			on m.OWN_USER_ID = u.USER_ID
+			and u.DEL_FLG = '0'
+			  WHERE 1 = 1
+				AND m.DEL_FLG = '0'
+			<if test="supplierCdDis != null and supplierCdDis != '' ">
+				<bind name="like_supplierCdDis" value="'%' + supplierCdDis + '%'"/>
+				AND m.SUPPLIER_CD_DIS like #{like_supplierCdDis}
+			</if>
+			<if test="supplierNm != null and supplierNm != '' ">
+				<bind name="like_supplierNm" value="'%' + supplierNm + '%'"/>
+				AND m.SUPPLIER_NM like #{like_supplierNm}
+			</if>
+			<if test="supplierJc != null and supplierJc != '' ">
+				<bind name="like_supplierJc" value="'%' + supplierJc + '%'"/>
+				AND m.SUPPLIER_JC like #{like_supplierJc}
+			</if>
+			<if test="supplierType != null and supplierType != '' ">
+				AND m.SUPPLIER_TYPE = #{supplierType}
+			</if>
+			<if test="supplierNmEn != null and supplierNmEn != '' ">
+				<bind name="like_supplierNmEn" value="'%' + supplierNmEn + '%'"/>
+				AND m.SUPPLIER_NM_EN like #{like_supplierNmEn}
+			</if>
+			<if test="levelId != null and levelId != '' ">
+				AND m.LEVEL_ID = #{levelId}
+			</if>
+			<if test="cntryCd != null and cntryCd != '' ">
+				AND m.CNTRY_CD = #{cntryCd}
+			</if>
+			<if test="paymentType != null and paymentType != '' ">
+				AND m.PAYMENT_TYPE = #{paymentType}
+			</if>
+			order by m.SUPPLIER_CD_DIS,m.SUPPLIER_NM
+	</select>
+	<select id="selectMSupplierLine" resultMap="mSupplierMap">
+			SELECT m.*                            <!--供应商表 -->
+					,g1.GENERAL_NM supplierTypeNm    <!--供应商类型 -->
+					,g2.GENERAL_NM paymentTypeNm     <!--结算方式 -->
+					,l.LEVEL_NM levelNm              <!--评价等级 -->
+                    ,u1.USER_NM ownUserIdNm           <!--本公司联络人 -->
+                    ,u2.USER_NM acceptIdNm           <!--审批人 -->
+					,g3.GENERAL_NM cntryCdNm         <!--国家 -->
+			FROM M_SUPPLIER m
+			left join M_GENERAL g1 ON g1.GENERAL_MASTER_TYPE = 'SUPPLIER_TYPE'
+		    and m.SUPPLIER_TYPE = g1.GENERAL_CD
+			and g1.DEL_FLG = '0'
+			left join M_GENERAL g2 ON g2.GENERAL_MASTER_TYPE = 'PAYMENT_TYPE'
+		    and m.PAYMENT_TYPE = g2.GENERAL_CD
+			and g2.DEL_FLG = '0'
+			left join M_GENERAL g3 ON g3.GENERAL_MASTER_TYPE = 'CNTRY_CD'
+			and m.CNTRY_CD = g3.GENERAL_CD
+			and g3.DEL_FLG = '0'
+			left join M_LEVEL l
+			on m.LEVEL_ID = l.ID
+			and l.DEL_FLG = '0'
+            left join M_USER u1
+            on m.OWN_USER_ID = u1.USER_ID
+            and u1.DEL_FLG = '0'
+            left join M_USER u2
+            on m.ACCEPT_ID = u2.USER_ID
+            and u2.DEL_FLG = '0'
+			WHERE 1 = 1
+			AND m.DEL_FLG = '0'
+				AND m.ID = #{supplierId}
+
+	</select>
+	<select id="selectSupplierLine"   resultMap="mSupplierLineListMap">
+			  SELECT sl.*                      <!--供应商明细表 -->
+			         ,p.PROD_NM prodNm          <!--商品名称 -->
+			         ,p.PROD_CD_DIS prodCdDis   	<!--商品编号 -->
+			         ,p.PROD_CLASS_ID prodClassId	<!--商品名称 -->
+			         ,u.USER_NM acceptIdNm        <!--审批人 -->
+				FROM M_SUPPLIER_LINE sl
+				left join M_PRODUCT p
+				on sl.PROD_ID = p.ID
+				and p.DEL_FLG = '0'
+				left join M_USER u
+				on sl.ACCEPT_ID = u.USER_ID
+				and u.DEL_FLG = '0'
+				WHERE sl.SUPPLIER_ID = #{supplierId}
+				  AND sl.DEL_FLG = '0'
+		</select>
+</mapper>

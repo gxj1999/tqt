@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.TCustomerAppraiseListDao">
+	<resultMap id="tCustomerAppraiseMap" type="com.soft.common.mybatis.extend.entity.TCustomerAppraiseList">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="CNTR_CD" jdbcType="VARCHAR" property="cntrCd" />
+		<result column="ORG_ID" jdbcType="VARCHAR" property="orgId" />
+		<result column="CUSTOMER_CD" jdbcType="VARCHAR" property="customerCd" />
+		<result column="APPRAISE_TYPE" jdbcType="VARCHAR" property="appraiseType" />
+		<result column="COMMON_CD" jdbcType="VARCHAR" property="commonCd" />
+		<result column="APPRAISE_LEVEL" jdbcType="VARCHAR" property="appraiseLevel" />
+		<result column="REMARKS" jdbcType="VARCHAR" property="remarks" />
+		<result column="orgNm" jdbcType="VARCHAR" property="orgNm" />
+		<result column="customerNm" jdbcType="VARCHAR" property="customerNm" />
+		<result column="appTypeNm" jdbcType="VARCHAR" property="appTypeNm" />
+	</resultMap>
+	<select id="selectTCustomerAppraise" resultMap="tCustomerAppraiseMap">
+			SELECT t.*                          <!--客户评价 -->
+					,o.ORG_NM orgNm             <!--组织部门名称 -->
+					,m.CUSTOMER_NM customerNm   <!--客户编号 -->
+					,g.GENERAL_NM appTypeNm     <!--评价等级 -->
+			  FROM T_CUSTOMER_APPRAISE t
+			 left join M_GENERAL g ON g.GENERAL_MASTER_TYPE = 'APPRAISE_TYPE'
+			 and t.APPRAISE_LEVEL = g.GENERAL_CD
+			 AND g.DEL_FLG = '0'
+			 left join M_CUSTOMER m
+			 ON m.ID = t.CUSTOMER_CD
+			 and m.CNTR_CD = t.CNTR_CD
+			 AND m.DEL_FLG = '0'
+			 left join M_ORG o
+			 ON o.ID = t.ORG_ID
+			 and o.CNTR_CD = t.CNTR_CD
+			 AND o.DEL_FLG = '0'
+			  WHERE 1 = 1
+			   AND t.DEL_FLG = '0'
+			   AND t.CUSTOMER_CD = #{customerId}
+	</select>
+</mapper>

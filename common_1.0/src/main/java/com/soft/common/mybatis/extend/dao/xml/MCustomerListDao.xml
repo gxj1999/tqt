@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.MCustomerListao">
+	<resultMap id="mCustomerMap" type="com.soft.common.mybatis.extend.entity.MCustomerEx" extends="com.soft.common.mapper.MCustomerMapper.BaseResultMap">
+		<result column="customerTypeNm" jdbcType="VARCHAR" property="customerTypeNm" />
+		<result column="cntryCd" jdbcType="VARCHAR" property="cntryCdNm" />
+		<result column="levelNm" jdbcType="VARCHAR" property="levelNm" />
+		<result column="ownUserId" jdbcType="VARCHAR" property="ownUserIdNm" />
+		<result column="acceptId" jdbcType="VARCHAR" property="acceptIdNm" />
+		<result column="paymentTypeNm" jdbcType="VARCHAR" property="paymentTypeNm" />
+	</resultMap>
+	<select id="selectMCustomer" resultMap="mCustomerMap">
+			SELECT m.*                              <!--客户表 -->
+					,g1.GENERAL_NM customerTypeNm      <!--客户类型 -->
+					,g2.GENERAL_NM cntryCd           <!--国家 -->
+					,l.LEVEL_NM levelNm              <!--评价等级 -->
+					,u1.USER_NM ownUserId            <!--本公司联络人 -->
+					,u2.USER_NM acceptId             <!--审批人 -->
+					,g3.GENERAL_NM paymentTypeNm       <!--结算方式 -->
+			  FROM M_CUSTOMER m
+			left join M_GENERAL g1 ON g1.GENERAL_MASTER_TYPE = 'CUSTOMER_TYPE'
+			and m.CUSTOMER_TYPE = g1.GENERAL_CD
+			and g1.DEL_FLG = '0'
+			left join M_GENERAL g2 ON g2.GENERAL_MASTER_TYPE = 'CNTRY_CD'
+			and m.CNTRY_CD = g2.GENERAL_CD
+			and g2.DEL_FLG = '0'
+			left join M_GENERAL g3 ON g3.GENERAL_MASTER_TYPE = 'PAYMENT_TYPE'
+			and m.PAYMENT_TYPE = g3.GENERAL_CD
+			and g3.DEL_FLG = '0'
+			left join M_LEVEL l
+			on m.LEVEL_ID = l.ID
+			and m.CNTR_CD = l.CNTR_CD
+			and l.DEL_FLG = '0'
+			left join M_USER u1
+			on m.OWN_USER_ID = u1.USER_ID
+			and m.CNTR_CD = u1.CNTR_CD
+			and u1.DEL_FLG = '0'
+			left join M_USER u2
+			on m.ACCEPT_ID = u2.USER_ID
+			and m.CNTR_CD = u2.CNTR_CD
+			and u2.DEL_FLG = '0'
+			  WHERE 1 = 1
+				AND m.DEL_FLG = '0'
+			<if test="customerCdDis != null and customerCdDis != '' ">
+				<bind name="like_customerCdDis" value="'%' + customerCdDis + '%'"/>
+				AND m.CUSTOMER_CD_DIS like #{like_customerCdDis}
+			</if>
+			<if test="customerNm != null and customerNm != '' ">
+				<bind name="like_customerNm" value="'%' + customerNm + '%'"/>
+				AND m.CUSTOMER_NM like #{like_customerNm}
+			</if>
+			<if test="customerJc != null and customerJc != '' ">
+				<bind name="like_customerJc" value="'%' + customerJc + '%'"/>
+					and m.CUSTOMER_JC like #{like_customerJc}
+			</if>
+			<if test="customerType != null and customerType != '' ">
+				AND m.CUSTOMER_TYPE = #{customerType}
+			</if>
+			<if test="customerNmEn != null and customerNmEn != '' ">
+				<bind name="like_customerNmEn" value="'%' + customerNmEn + '%'"/>
+				AND m.CUSTOMER_NM_EN like #{like_customerNmEn}
+			</if>
+			<if test="levelId != null and levelId != '' ">
+				AND m.LEVEL_ID = #{levelId}
+			</if>
+			<if test="cntryCd != null and cntryCd != '' ">
+				AND m.CNTRY_CD = #{cntryCd}
+			</if>
+			<if test="paymentType != null and paymentType != '' ">
+				AND m.PAYMENT_TYPE = #{paymentType}
+			</if>
+            <if test="Id != null and Id != '' ">
+                AND m.ID = #{Id}
+            </if>
+			order by m.CUSTOMER_CD_DIS,m.CUSTOMER_NM
+	</select>
+	<select id="selectMCustomeLineList" resultMap="mCustomerMap">
+				SELECT m.*                              <!--客户表 -->
+						,g1.GENERAL_NM customerTypeNm      <!--客户类型 -->
+						,g2.GENERAL_NM cntryCd           <!--国家 -->
+						,l.LEVEL_NM levelNm              <!--评价等级 -->
+						,u1.USER_NM ownUserId            <!--本公司联络人 -->
+						,u2.USER_NM acceptId             <!--审批人 -->
+						,g3.GENERAL_NM paymentTypeNm       <!--结算方式 -->
+				 FROM M_CUSTOMER m
+		   left join M_GENERAL g1 ON g1.GENERAL_MASTER_TYPE = 'CUSTOMER_TYPE'
+				  and m.CUSTOMER_TYPE = g1.GENERAL_CD
+				  and g1.DEL_FLG = '0'
+		   left join M_GENERAL g2 ON g2.GENERAL_MASTER_TYPE = 'CNTRY_CD'
+				  and m.CNTRY_CD = g2.GENERAL_CD
+				  and g2.DEL_FLG = '0'
+		   left join M_GENERAL g3 ON g3.GENERAL_MASTER_TYPE = 'PAYMENT_TYPE'
+		          and m.PAYMENT_TYPE = g3.GENERAL_CD
+				  and g3.DEL_FLG = '0'
+		  left join M_LEVEL l
+				   on m.LEVEL_ID = l.ID
+				  and m.CNTR_CD = l.CNTR_CD
+				  and l.DEL_FLG = '0'
+		   left join M_USER u1
+					on m.OWN_USER_ID = u1.USER_ID
+				  and m.CNTR_CD = u1.CNTR_CD
+				  and u1.DEL_FLG = '0'
+			left join M_USER u2
+					on m.ACCEPT_ID = u2.USER_ID
+				   and m.CNTR_CD = u2.CNTR_CD
+				   and u2.DEL_FLG = '0'
+				WHERE 1 = 1
+				AND m.DEL_FLG = '0'
+				<if test="customerId != null and customerId != '' ">
+					AND m.ID = #{customerId}
+				</if>
+	</select>
+	<select id="selectStockCustomer" resultMap="com.soft.common.mapper.MCustomerMapper.BaseResultMap">
+		SELECT  mc.ID
+				,mc.CNTR_CD
+				,mc.CNTR_CD
+				,mc.CUSTOMER_NM
+				,mc.CUSTOMER_NM_EN
+				,mc.CUSTOMER_JC
+				,mc.CUSTOMER_TYPE
+				,mc.INTEGRAL
+				,mc.LEVEL_ID
+				,mc.ADDR
+		  FROM t_stock_hand tsh
+	     INNER JOIN m_customer mc
+	        on tsh.CUSTOMER_ID = mc.id
+	      WHERE tsh.DEL_FLG = '0'
+	        AND tsh.CHARGE_QTY != '0'
+	     GROUP BY mc.id
+	</select>
+</mapper>

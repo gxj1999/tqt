@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.soft.common.mapper.SysWhCloudMapper">
+  <resultMap id="BaseResultMap" type="com.soft.common.model.SysWhCloud">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="ID" jdbcType="VARCHAR" property="id" />
+    <result column="CNTR_CD" jdbcType="VARCHAR" property="cntrCd" />
+    <result column="WH_ID" jdbcType="VARCHAR" property="whId" />
+    <result column="CLOUD_NM" jdbcType="VARCHAR" property="cloudNm" />
+    <result column="DEL_FLG" jdbcType="VARCHAR" property="delFlg" />
+  </resultMap>
+</mapper>

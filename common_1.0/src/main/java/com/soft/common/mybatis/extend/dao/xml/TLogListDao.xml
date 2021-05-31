@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.TLogListDao">
+	<resultMap id="tLogMap" type="com.soft.common.model.TLog" extends="com.soft.common.mapper.TLogMapper.BaseResultMap">
+	</resultMap>
+
+	<select id="selectTLog" resultMap="tLogMap">
+			SELECT t.*
+			  FROM T_LOG t
+			 WHERE 1 = 1
+		       AND t.DEL_FLG = '0'
+			<if test="cntrCd != null and cntrCd != '' ">
+			   AND t.CNTR_CD = #{cntrCd}
+			</if>
+			<if test="objStartDt != null and objStartDt != '' ">
+			   AND t.OBJ_START_DT &gt;= #{objStartDt}
+			</if>
+			<if test="objEndDt != null and objEndDt != '' ">
+			   AND t.OBJ_END_DT &lt;= #{objEndDt}
+			</if>
+			<if test="logStatus != null and logStatus != '' ">
+			   AND t.LOG_STATUS = #{logStatus}
+			</if>
+			<if test="logComment != null and logComment != '' ">
+				AND t.LOG_COMMENT = #{logComment}
+			</if>
+			<if test="skriKbn != null and skriKbn != '' ">
+				AND t.SYRI_KBN &lt;= #{skriKbn}
+			</if>
+			<if test="pgmId != null and pgmId != '' ">
+				AND t.PGM_ID = #{pgmId}
+			</if>
+
+	</select>
+
+</mapper>

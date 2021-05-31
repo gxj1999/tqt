@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.MWhListDao">
+	<resultMap id="mWhMap" type="com.soft.common.mybatis.extend.entity.MWhEx" extends="com.soft.common.mapper.MWhMapper.BaseResultMap">
+		<result column="whTypeNm" jdbcType="VARCHAR" property="whTypeNm" />
+	</resultMap>
+	<resultMap id="mZoneMap" type="com.soft.common.mybatis.extend.entity.MWhEx" extends="com.soft.common.mapper.MWhMapper.BaseResultMap">
+		<result column="whTypeNm" jdbcType="VARCHAR" property="whTypeNm" />
+		<result column="acceptIdNm" jdbcType="VARCHAR" property="acceptIdNm" />
+		<collection column="{id=id,whId=ID}" property="children" ofType="com.soft.common.model.MZone" javaType="java.util.ArrayList" select="selectZone" />
+	</resultMap>
+	<select id="selectMWh" resultMap="mWhMap">
+			SELECT m.*      <!--仓库表 -->
+					,g.GENERAL_NM whTypeNm  <!--仓库类型 -->
+			  FROM M_WH m
+			left join M_GENERAL g ON g.GENERAL_MASTER_TYPE = 'WH_TYPE'
+			and m.WH_TYPE = g.GENERAL_CD
+			and g.DEL_FLG = '0'
+			 WHERE 1 = 1
+			  AND m.DEL_FLG = '0'
+            <if test="id != null and id != '' ">
+                AND m.ID = #{id}
+            </if>
+			<if test="cntrCd != null and cntrCd != '' ">
+			   AND m.CNTR_CD = #{cntrCd}
+			</if>
+			<if test="whCdDis != null and whCdDis != '' ">
+				<bind name="like_whCdDis" value="'%' + whCdDis + '%'"/>
+			   AND m.WH_CD_DIS like #{like_whCdDis}
+			</if>
+			<if test="whNm != null and whNm != '' ">
+				<bind name="like_whNm" value="'%' + whNm + '%'"/>
+			   AND m.WH_NM like #{like_whNm}
+			</if>
+			<if test="whNmJc != null and whNmJc != '' ">
+				<bind name="like_whNmJc" value="'%' + whNmJc + '%'"/>
+				and m.WH_NM_JC like #{like_whNmJc}
+			</if>
+			<if test="whType != null and whType != '' ">
+			   AND m.WH_TYPE = #{whType}
+			</if>
+			order by m.WH_CD_DIS,m.WH_NM
+	</select>
+	<select id="selectMZone" resultMap="mZoneMap">
+			SELECT m.*           		  <!--仓库表 -->
+					,g.GENERAL_NM whTypeNm  <!--仓库类型 -->
+					,u.USER_NM acceptIdNm   <!--审批人名称 -->
+			FROM M_WH m
+			left join M_GENERAL g ON g.GENERAL_MASTER_TYPE = 'WH_TYPE'
+			and m.WH_TYPE = g.GENERAL_CD
+			and g.DEL_FLG = '0'
+			left join M_USER u
+			on m.ACCEPT_ID = u.USER_ID
+			and m.CNTR_CD =u.CNTR_CD
+			and u.DEL_FLG = '0'
+			WHERE 1 = 1
+			AND m.DEL_FLG = '0'
+				AND m.ID = #{whId}
+
+	</select>
+	<select id="selectZone"   resultMap="com.soft.common.mapper.MZoneMapper.BaseResultMap">
+			  SELECT z.*       <!--仓库区域表 -->
+				FROM M_ZONE z
+				WHERE z.WH_ID = #{whId}
+				  AND z.DEL_FLG = '0'
+		</select>
+
+</mapper>

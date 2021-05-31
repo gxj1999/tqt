@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.MUserListDao">
+	<resultMap id="mUserMap" type="com.soft.common.mybatis.extend.entity.MUserEx" extends="com.soft.common.mapper.MUserMapper.BaseResultMap">
+		<result column="loginId" jdbcType="VARCHAR" property="loginId" />
+        <result column="sexCdNm" jdbcType="VARCHAR" property="sexCdNm" />
+        <result column="userKbnNm" jdbcType="VARCHAR" property="userKbnNm" />
+        <result column="ROLE_NM" jdbcType="VARCHAR" property="roleNm" />
+        <result column="ORG_NM" jdbcType="VARCHAR" property="orgNm" />
+        <result column="WORKGROUP_NM" jdbcType="VARCHAR" property="bzNm" />
+
+	</resultMap>
+	<resultMap id="mUsersMap" type="com.soft.common.mybatis.extend.entity.MUserEx" extends="com.soft.common.mapper.MUserMapper.BaseResultMap">
+		<result column="uesrId" jdbcType="VARCHAR" property="loginId" />
+		<result column="sexCdNm" jdbcType="VARCHAR" property="sexCdNm" />
+		<result column="userKbnNm" jdbcType="VARCHAR" property="userKbnNm" />
+		<result column="ROLE_ID" jdbcType="VARCHAR" property="roleId" />
+		<result column="ROLE_NM" jdbcType="VARCHAR" property="roleNm" />
+		<result column="ORG_ID" jdbcType="VARCHAR" property="orgId" />
+		<result column="ORG_CD_DIS" jdbcType="VARCHAR" property="orgCdDis" />
+		<result column="ORG_NM" jdbcType="VARCHAR" property="orgNm" />
+	</resultMap>
+	<resultMap id="mUserListMap" type="com.soft.common.mybatis.extend.entity.MUserEx" extends="com.soft.common.mapper.MUserMapper.BaseResultMap">
+		<result column="loginId" jdbcType="VARCHAR" property="loginId" />
+		<result column="sexCdNm" jdbcType="VARCHAR" property="sexCdNm" />
+		<result column="userKbnNm" jdbcType="VARCHAR" property="userKbnNm" />
+        <result column="ORG_ID" jdbcType="VARCHAR" property="orgId" />
+        <result column="ORG_NM" jdbcType="VARCHAR" property="orgNm" />
+        <result column="ROLE_NM" jdbcType="VARCHAR" property="roleNm" />
+	</resultMap>
+	<select id="selectMUser" resultMap="mUserMap">
+			SELECT m.*                  <!--用户表 -->
+			,g1.GENERAL_NM sexCdNm
+			,g2.GENERAL_NM userKbnNm
+		,l.LOGIN_ID loginId   <!--登录ID -->
+        <!-- abb by xhs 2020-05-15 start 改动点84 人员一览增加部门及角色的查询条件。 -->
+        ,r.ROLE_NM,
+        o.ORG_NM,
+        mw.WORKGROUP_NM
+        <!-- abb by xhs 2020-05-15 end 改动点84 人员一览增加部门及角色的查询条件。 -->
+			  FROM M_USER m
+		left join M_LOGIN l
+		on m.USER_ID = l.USER_ID
+		and  m.CNTR_CD = l.CNTR_CD
+		and  l.DEL_FLG = '0'
+        <!-- abb by xhs 2020-05-15 start 改动点84 人员一览增加部门及角色的查询条件。 -->
+        LEFT JOIN m_user_role ur ON ur.USER_ID = m.USER_ID
+            AND ur.DEL_FLG = '0'
+            AND ur.CNTR_CD = m.CNTR_CD
+        LEFT JOIN m_role r ON r.ID = ur.ROLE_ID
+            AND r.DEL_FLG = '0'
+            AND r.CNTR_CD = m.CNTR_CD
+        LEFT JOIN m_org o ON o.ID = r.ORG_ID
+            AND o.DEL_FLG = '0'
+            AND o.CNTR_CD = m.CNTR_CD
+        <!-- abb by xhs 2020-05-15 end 改动点84 人员一览增加部门及角色的查询条件。 -->
+        LEFT JOIN M_GENERAL g1 ON g1.GENERAL_MASTER_TYPE = 'SEX_CD'
+        AND m.SEX_CD = g1.GENERAL_CD
+        AND g1.DEL_FLG = '0'
+        LEFT JOIN M_GENERAL g2 ON g2.GENERAL_MASTER_TYPE = 'USER_KBN'
+        AND m.USER_KBN = g2.GENERAL_CD
+        AND g2.DEL_FLG = '0'
+        LEFT JOIN m_workgroup mw ON mw.id = ur.CHAR1
+        AND mw.DEL_FLG = '0'
+        AND mw.CNTR_CD = ur.CNTR_CD
+         WHERE m.DEL_FLG = '0'
+			<if test="cntrCd != null and cntrCd != '' ">
+			   AND m.CNTR_CD = #{cntrCd}
+			</if>
+			<if test="workId != null and workId != '' ">
+			   AND m.WORK_ID = #{workId}
+			</if>
+			<if test="userId != null and userId != '' ">
+				<bind name="like_userId" value="'%' + userId + '%'"/>
+				AND (m.USER_ID like #{like_userId})
+			</if>
+			<if test="userNm != null and userNm != '' ">
+				<bind name="like_userNm" value="'%' + userNm + '%'"/>
+			   AND (m.USER_NM like #{like_userNm})
+			</if>
+			<if test="userNmEn != null and userNmEn != '' ">
+				<bind name="like_userNmEn" value="'%' + userNmEn + '%'"/>
+				AND (m.USER_NM_EN like #{like_userNmEn})
+			</if>
+			<if test="loginId != null and loginId != '' ">
+                <bind name="like_loginId" value="'%' + loginId + '%'"/>
+				AND l.LOGIN_ID like #{like_loginId}
+			</if>
+        <!-- abb by xhs 2020-05-15 start 改动点84 人员一览增加部门及角色的查询条件。 -->
+            <if test="roleNm != null and roleNm != '' ">
+                <bind name="like_roleNm" value="'%' + roleNm + '%'"/>
+                AND r.ROLE_NM like #{like_roleNm}
+            </if>
+            <if test="orgNm != null and orgNm != '' ">
+                <bind name="like_orgNm" value="'%' + orgNm + '%'"/>
+                AND o.ORG_NM like #{like_orgNm}
+            </if>
+        <!-- abb by xhs 2020-05-15 start 改动点84 人员一览增加部门及角色的查询条件。 -->
+			order by m.USER_ID,m.USER_NM
+	</select>
+	<select id="selectMUserLine" resultMap="mUsersMap">
+				SELECT
+					m.*, l.LOGIN_ID,
+					g1.GENERAL_NM sexCdNm,
+					g2.GENERAL_NM userKbnNm,
+					r.ORG_ID,
+					o.ORG_CD_DIS,
+					o.ORG_NM,
+					ur.ROLE_ID,
+					r.ROLE_NM,
+					ur.DEF_CPY_FLG,
+					ur.DEF_ORG_TYPE
+				FROM
+				M_USER_ROLE ur
+				INNER JOIN M_USER m ON m.USER_ID = ur.USER_ID
+				AND m.CNTR_CD = ur.CNTR_CD
+				AND ur.DEL_FLG = '0'
+				INNER JOIN M_LOGIN l ON m.USER_ID = l.USER_ID
+				AND m.CNTR_CD = l.CNTR_CD
+				AND l.DEL_FLG = '0'
+				INNER JOIN M_ROLE r ON ur.ROLE_ID = r.ID
+				AND m.CNTR_CD = r.CNTR_CD
+				AND r.DEL_FLG = '0'
+				INNER JOIN M_ORG o ON r.ORG_ID = o.ID
+				AND m.CNTR_CD = o.CNTR_CD
+				AND o.DEL_FLG = '0'
+				LEFT JOIN M_GENERAL g1 ON g1.GENERAL_MASTER_TYPE = 'SEX_CD'
+        AND m.SEX_CD = g1.GENERAL_CD
+        AND g1.DEL_FLG = '0'
+        LEFT JOIN M_GENERAL g2 ON g2.GENERAL_MASTER_TYPE = 'USER_KBN'
+        AND m.USER_KBN = g2.GENERAL_CD
+        AND g2.DEL_FLG = '0'
+				WHERE
+				1 = 1
+				AND m.DEL_FLG = '0'
+					<if test="userId != null and userId != '' ">
+						AND m.USER_ID = #{userId}
+					</if>
+	</select>
+	<select id="selectMUserList" resultMap="mUserListMap">
+		SELECT m.ID
+				,m.USER_ID
+				,m.USER_NM
+				,m.USER_NM_EN
+				,o.ID AS ORG_ID
+				,o.ORG_NM
+				,g1.GENERAL_NM sexCdNm
+				,m.WORK_ID
+				,g2.GENERAL_NM userKbnNm
+				,m.ID_CARD
+				,m.BIRTH
+				,m.CELL_PHONE
+				,m.TEL
+				,m.E_MAIL
+				,m.ADRS
+				,m.ZIP_CODE
+				,m.REMARKS
+				,l.LOGIN_ID loginId
+				,r.ROLE_NM
+				FROM M_USER m
+				left join M_LOGIN l
+				on m.USER_ID = l.USER_ID
+				and  m.CNTR_CD = l.CNTR_CD
+				and  l.DEL_FLG = '0'
+                LEFT JOIN M_USER_ROLE ur
+                on m.USER_ID = ur.USER_ID
+                and m.CNTR_CD = ur.CNTR_CD
+                and ur.DEF_CPY_FLG = '1'
+                and ur.DEL_FLG = '0'
+                LEFT JOIN M_ROLE r
+                on ur.ROLE_ID = r.ID
+                and r.DEL_FLG = '0'
+                LEFT JOIN M_ORG o
+                on r.ORG_ID = o.ID
+                and o.DEL_FLG = '0'
+				LEFT JOIN M_GENERAL g1 ON g1.GENERAL_MASTER_TYPE = 'SEX_CD'
+				AND m.SEX_CD = g1.GENERAL_CD
+				AND g1.DEL_FLG = '0'
+				LEFT JOIN M_GENERAL g2 ON g2.GENERAL_MASTER_TYPE = 'USER_KBN'
+				AND m.USER_KBN = g2.GENERAL_CD
+				AND g2.DEL_FLG = '0'
+				WHERE 1 = 1
+				AND m.DEL_FLG = '0'
+		<if test="cntrCd != null and cntrCd != '' ">
+			AND m.CNTR_CD = #{cntrCd}
+		</if>
+		<if test="userId != null and userId != '' ">
+            <bind name="like_userId" value="'%' + userId + '%'"/>
+			AND m.USER_ID like #{like_userId}
+		</if>
+		<if test="userNm != null and userNm != '' ">
+			<bind name="like_userNm" value="'%' + userNm + '%'"/>
+			AND m.USER_NM like #{like_userNm}
+		</if>
+        <if test="userNmEn != null and userNmEn != '' ">
+            <bind name="like_userNmEn" value="'%' + userNmEn + '%'"/>
+            AND m.USER_NM_EN like #{like_userNmEn}
+        </if>
+		<if test="loginId != null and loginId != '' ">
+            <bind name="like_loginId" value="'%' + loginId + '%'"/>
+			AND l.LOGIN_ID like #{like_loginId}
+		</if>
+        <!-- add by xhs 2020-05-15 start -->
+        <if test="roleNm != null and roleNm != '' ">
+            <bind name="like_roleNm" value="'%' + roleNm + '%'"/>
+            AND r.ROLE_NM like #{like_roleNm}
+        </if>
+        <!-- add by xhs 2020-05-15 start -->
+		order by m.USER_ID,m.USER_NM
+	</select>
+</mapper>

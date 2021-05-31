@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.soft.common.mybatis.extend.dao.MCarrierLineListDao">
+  <resultMap id="BaseResultMap" type="com.soft.common.mybatis.extend.entity.MCarrierLineEx" extends="com.soft.common.mapper.MCarrierLineMapper.BaseResultMap">
+
+    <result column="ACCEPT_NM" jdbcType="VARCHAR" property="acceptNm" />
+      <result column="UNIT_NM" jdbcType="VARCHAR" property="unitNm" />
+  </resultMap>
+
+  <select id="selectMCarrierLine" resultMap="BaseResultMap">
+    SELECT m.*
+      ,u2.USER_NM ACCEPT_NM
+      ,g1.GENERAL_NM UNIT_NM  <!--物流公司类型 -->
+    FROM M_CARRIER_LINE m
+    left join M_GENERAL g1 ON g1.GENERAL_MASTER_TYPE = 'UNIT'
+    and m.UNIT = g1.GENERAL_CD
+    and g1.DEL_FLG = '0'
+    left join M_USER u2
+    on m.ACCEPT_ID = u2.USER_ID
+    and u2.DEL_FLG = '0'
+    WHERE 1 = 1
+    AND m.DEL_FLG = '0'
+    AND m.CARRIER_ID = #{carrierId}
+
+  </select>
+
+</mapper>

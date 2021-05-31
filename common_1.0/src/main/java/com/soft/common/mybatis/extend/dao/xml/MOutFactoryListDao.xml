@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.MOutFactoryListDao">
+	<resultMap id="mOutFactoryMap" type="com.soft.common.mybatis.extend.entity.MOutFactoryEx" extends="com.soft.common.mapper.MOutFactoryMapper.BaseResultMap">
+		<result column="LEVEL_NM" jdbcType="VARCHAR" property="levelNm" />
+		<result column="OWN_USER_NM" jdbcType="VARCHAR" property="ownUserNm" />
+		<result column="ACCEPT_NM" jdbcType="VARCHAR" property="acceptNm" />
+        <result column="OUT_FACTORY_TYPE_NM" jdbcType="VARCHAR" property="outFactoryTypeNm" />
+        <result column="CNTRY_CD_NM" jdbcType="VARCHAR" property="cntryCdNm" />
+        <result column="PAYMENT_TYPE_NM" jdbcType="VARCHAR" property="paymentTypeNm" />
+	</resultMap>
+	<resultMap id="mOutFactorysMap" type="com.soft.common.mybatis.extend.entity.MOutFactoryEx" extends="com.soft.common.mapper.MOutFactoryMapper.BaseResultMap">
+		<result column="outFactoryTypeNm" jdbcType="VARCHAR" property="outFactoryTypeNm" />
+		<result column="zipCodeNm" jdbcType="VARCHAR" property="zipCodeNm" />
+		<result column="levelNm" jdbcType="VARCHAR" property="levelNm" />
+		<result column="ownUserNm" jdbcType="VARCHAR" property="ownUserNm" />
+		<result column="prodNm" jdbcType="VARCHAR" property="prodNm" />
+        <result column="acceptNm" jdbcType="VARCHAR" property="acceptNm" />
+		<collection column="{id=id,outFactoryId=ID}" property="children" ofType="com.soft.common.model.MOutFactoryLine" javaType="java.util.ArrayList" select="selectOurFactory" />
+	</resultMap>
+    <resultMap id="mOutFactoryLineListMap" type="com.soft.common.mybatis.extend.entity.MOutFactoryLineEx" extends="com.soft.common.mapper.MOutFactoryLineMapper.BaseResultMap">
+        <result column="prodNm" jdbcType="VARCHAR" property="prodNm" />
+        <result column="acceptIdNm" jdbcType="VARCHAR" property="acceptIdNm" />
+        <result column="prodClassId" jdbcType="VARCHAR" property="prodClassId" />
+    </resultMap>
+	<select id="selectMOutFactory" resultMap="mOutFactoryMap">
+			SELECT m.*                <!--外发工厂表 -->
+              ,u1.USER_NM AS ACCEPT_NM          <!--审批人-->
+              ,u2.USER_NM AS OWN_USER_NM        <!--本公司联络人-->
+		      ,L.LEVEL_NM AS LEVEL_NM           <!--评级-->
+              ,G1.GENERAL_NM AS OUT_FACTORY_TYPE_NM        <!--外发工厂类型-->
+              ,G2.GENERAL_NM AS CNTRY_CD_NM        <!--国家-->
+              ,G3.GENERAL_NM AS PAYMENT_TYPE_NM <!--结算方式-->
+			  FROM M_OUT_FACTORY m
+			  LEFT OUTER JOIN M_USER U1 ON M.ACCEPT_ID = U1.USER_ID
+			  AND U1.DEL_FLG = '0'
+              LEFT OUTER JOIN M_USER U2 ON M.OWN_USER_ID = U2.USER_ID
+              AND U2.DEL_FLG = '0'
+              LEFT OUTER JOIN M_level L ON M.LEVEL_ID = L.ID
+		      AND L.DEL_FLG = '0'
+              LEFT OUTER JOIN m_general g1 ON M.OUT_FACTORY_TYPE = g1.general_cd
+              AND g1.GENERAL_MASTER_TYPE = 'OUT_FACTORY_TYPE'
+              AND G1.DEL_FLG = '0'
+              LEFT OUTER JOIN m_general g2 ON M.CNTRY_CD = g2.general_cd
+              AND g2.GENERAL_MASTER_TYPE = 'CNTRY_CD'
+              AND g2.DEL_FLG = '0'
+              LEFT OUTER JOIN m_general g3 ON M.PAYMENT_TYPE = g3.general_cd
+              AND g3.GENERAL_MASTER_TYPE = 'PAYMENT_TYPE'
+              AND g3.DEL_FLG = '0'
+			 WHERE 1 = 1
+			  AND m.DEL_FLG = '0'
+			<!--zwd modified 20190923 <if test="outFactoryId != null and outFactoryId != '' ">-->
+			   <!--AND m.ID = #{outFactoryId}-->
+			<!--</if>-->
+			<if test="outFactoryCdDis != null and outFactoryCdDis != '' ">
+				<bind name="like_outFactoryCdDis" value="'%' + outFactoryCdDis + '%'"/>
+			   AND m.OUT_FACTORY_CD_DIS like #{like_outFactoryCdDis}
+			</if>
+			<if test="outFactoryNm != null and outFactoryNm != '' ">
+				<bind name="like_outFactoryNm" value="'%' + outFactoryNm + '%'"/>
+				AND m.OUT_FACTORY_NM like #{like_outFactoryNm}
+			</if>
+			<if test="outFactoryNmEn != null and outFactoryNmEn != '' ">
+				<bind name="like_outFactoryNmEn" value="'%' + outFactoryNmEn + '%'"/>
+				AND m.OUT_FACTORY_NM_EN like #{like_outFactoryNmEn}
+			</if>
+			<if test="outFactoryJc != null and outFactoryJc != '' ">
+				<bind name="like_outFactoryJc" value="'%' + outFactoryJc + '%'"/>
+				AND m.OUT_FACTORY_JC like #{like_outFactoryJc}
+			</if>
+			<if test="outFactoryType != null and outFactoryType != '' ">
+				AND m.OUT_FACTORY_TYPE = #{outFactoryType}
+			</if>
+			<if test="levelId != null and levelId != '' ">
+				AND m.LEVEL_ID = #{levelId}
+			</if>
+			<if test="cntryCd != null and cntryCd != '' ">
+			   AND m.CNTRY_CD = #{cntryCd}
+			</if>
+			<if test="paymentType != null and paymentType != '' ">
+				AND m.PAYMENT_TYPE = #{paymentType}
+			</if>
+			order by m.OUT_FACTORY_CD_DIS,m.OUT_FACTORY_NM
+	</select>
+	<select id="selectMOutFactoryLine" resultMap="mOutFactorysMap">
+			SELECT m.*                              <!--外发工厂表 -->
+					,g1.GENERAL_NM outFactoryTypeNm  <!--外发工厂类型 -->
+					,l.LEVEL_NM levelNm              <!--评价等级 -->
+					,g2.GENERAL_NM zipCodeNm         <!--邮编 -->
+					,g3.GENERAL_NM paymentType       <!--结算方式 -->
+					,u1.USER_NM ownUserNm             <!--本公司联络人 -->
+					,u2.USER_NM acceptNm            <!--审批人 -->
+				FROM M_OUT_FACTORY m
+				left join M_LEVEL l
+				on m.LEVEL_ID = l.ID
+				and  l.DEL_FLG = '0'
+				left join M_GENERAL g1 ON g1.GENERAL_MASTER_TYPE = 'OUT_FACTORY_TYPE'
+				and m.OUT_FACTORY_TYPE = g1.GENERAL_CD
+				and  g1.DEL_FLG = '0'
+				left join M_GENERAL g2 ON g2.GENERAL_MASTER_TYPE = 'ZIP_CODE'
+				and m.ZIP_CODE = g2.GENERAL_CD
+				and  g2.DEL_FLG = '0'
+				left join M_GENERAL g3 ON g3.GENERAL_MASTER_TYPE = 'PAYMENT_TYPE'
+				and m.PAYMENT_TYPE = g3.GENERAL_CD
+				and  g3.DEL_FLG = '0'
+				left join M_USER u1
+				on m.OWN_USER_ID = u1.USER_ID
+				and  u1.DEL_FLG = '0'
+                left join M_USER u2
+                on m.ACCEPT_ID = u2.USER_ID
+                and  u2.DEL_FLG = '0'
+				WHERE 1 = 1
+				AND m.DEL_FLG = '0'
+				AND m.ID = #{outFactoryId}
+
+	</select>
+	<select id="selectOurFactory"   resultMap="mOutFactoryLineListMap">
+			  SELECT mo.*              <!--外发工厂明细表 -->
+			  		  ,p.PROD_NM prodNm     <!--商品名称 -->
+                      ,p.PROD_CLASS_ID prodClassId<!--商品名称 -->
+			  		  ,u.USER_NM acceptIdNm       <!--审批人 -->
+				FROM M_OUT_FACTORY_LINE mo
+				left join M_PRODUCT p
+				on mo.PROD_ID = p.ID
+				and  p.DEL_FLG = '0'
+				left join M_USER u
+				on mo.ACCEPT_ID = u.USER_ID
+				and  u.DEL_FLG = '0'
+				WHERE mo.OUT_FACTORY_ID = #{outFactoryId}
+				  AND mo.DEL_FLG = '0'
+				order by mo.OUT_FACTORY_LINE_NUM
+		</select>
+</mapper>

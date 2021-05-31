@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.MLocListDao">
+	<resultMap id="mLocMap" type="com.soft.common.mybatis.extend.entity.MLocEx" extends="com.soft.common.mapper.MLocMapper.BaseResultMap">
+		<result column="locTypeNm" jdbcType="VARCHAR" property="locTypeNM" />
+		<result column="whNm" jdbcType="VARCHAR" property="whNm" />
+		<result column="zoneNm" jdbcType="VARCHAR" property="zoneNm" />
+		<result column="allcNgClsNm" jdbcType="VARCHAR" property="allcNgClsNm" />
+	</resultMap>
+	<select id="selectMLoc" resultMap="mLocMap">
+			SELECT m.*                    <!--库位表 -->
+					,w.WH_NM whNm          <!--仓库名称 -->
+					,z.ZONE_NM zoneNm      <!--区域名称 -->
+					,g1.GENERAL_NM locTypeNm <!--库位类型 -->
+					,g2.GENERAL_NM allcNgClsNm <!--禁止操作区分 -->
+			  FROM M_LOC m
+		left join M_WH w
+				on m.WH_ID = w.ID
+			   and m.CNTR_CD = w.CNTR_CD
+			   AND w.DEL_FLG = '0'
+		left join M_ZONE z
+				on m.ZONE_ID = z.ID
+			   and m.CNTR_CD = z.CNTR_CD
+			   AND z.DEL_FLG = '0'
+		left join M_GENERAL g1 ON g1.GENERAL_MASTER_TYPE = 'LOC_TYPE'
+			   and m.LOC_TYPE = g1.GENERAL_CD
+			   AND g1.DEL_FLG = '0'
+		left join M_GENERAL g2 ON g2.GENERAL_MASTER_TYPE = 'ALLC_NG_CLS'
+		and m.ALLC_NG_CLS = g2.GENERAL_CD
+		AND g2.DEL_FLG = '0'
+			 WHERE 1 = 1
+		       AND m.DEL_FLG = '0'
+			<if test="cntrCd != null and cntrCd != '' ">
+			   AND m.CNTR_CD = #{cntrCd}
+			</if>
+			<if test="whId != null and whId != '' ">
+			   AND m.WH_ID = #{whId}
+			</if>
+			<if test="zoneId != null and zoneId != '' ">
+			   AND m.ZONE_ID = #{zoneId}
+			</if>
+			<if test="locType != null and locType != '' ">
+			   AND m.LOC_TYPE = #{locType}
+			</if>
+			<if test="locCdDis != null and locCdDis != '' ">
+				<bind name="like_locCdDis" value="'%' + locCdDis + '%'"/>
+				AND m.LOC_CD_DIS like #{like_locCdDis}
+			</if>
+			<if test="locNm != null and locNm != '' ">
+				<bind name="like_locNm" value="'%' + locNm + '%'"/>
+				AND m.LOC_NM like #{like_locNm}
+			</if>
+			order by m.LOC_CD_DIS,m.LOC_NM
+	</select>
+	<select id="selectMLocList" resultMap="mLocMap">
+		SELECT m.*              <!--库位表 -->
+		,w.WH_NM whNm            <!--仓库名称 -->
+		,z.ZONE_NM zoneNm        <!--区域名称 -->
+		,g1.GENERAL_NM locTypeNm   <!--库位类型 -->
+		,g2.GENERAL_NM allcNgClsNm <!--禁止操作区分 -->
+		FROM M_LOC m
+		left join M_WH w
+		on m.WH_ID = w.ID
+		and m.CNTR_CD = w.CNTR_CD
+		AND w.DEL_FLG = '0'
+		left join M_ZONE z
+		on m.ZONE_ID = z.ID
+		and m.CNTR_CD = z.CNTR_CD
+		AND z.DEL_FLG = '0'
+		left join M_GENERAL g1 ON g1.GENERAL_MASTER_TYPE = 'LOC_TYPE'
+		and m.LOC_TYPE = g1.GENERAL_CD
+		AND g1.DEL_FLG = '0'
+		left join M_GENERAL g2 ON g2.GENERAL_MASTER_TYPE = 'ALLC_NG_CLS'
+		and m.ALLC_NG_CLS = g2.GENERAL_CD
+		AND g2.DEL_FLG = '0'
+		WHERE 1 = 1
+		AND m.DEL_FLG = '0'
+		AND m.ID = #{locId}
+	</select>
+	<select id="selectLocList" resultMap="mLocMap">
+		SELECT m.*              <!--库位表 -->
+		FROM M_LOC m
+		left join T_STOCK_HAND t
+		on m.WH_ID = t.WH_ID
+		and m.ZONE_ID = t.ZONE_ID
+		and m.ID = t.LOC_ID
+		and m.CNTR_CD = t.CNTR_CD
+		and t.DEL_FLG = '0'
+		WHERE 1 = 1
+		AND m.DEL_FLG = '0'
+		AND m.CNTR_CD = #{cntrCd}
+		AND m.WH_ID = #{whId}
+		AND m.ZONE_ID = #{zoneId}
+		and t.CHARGE_QTY != 0
+	</select>
+</mapper>

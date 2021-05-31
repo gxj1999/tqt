@@ -1,0 +1,194 @@
+# ===================================================================
+# Spring Boot configuration for the "dev" profile.
+#
+# This configuration overrides the application.yml file.
+#
+# More information on profiles: https://www.jhipster.tech/profiles/
+# More information on configuration properties: https://www.jhipster.tech/common-application-properties/
+  # ===================================================================
+
+  # ===================================================================
+  # Standard Spring Boot properties.
+  # Full reference is available at:
+  # http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
+  # ===================================================================
+
+logging:
+  level:
+    ROOT: DEBUG
+    io.github.jhipster: DEBUG
+    com.soft.common: DEBUG
+  file: ./log/common.log
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    service-url:
+#      defaultZone: http://admin:${jhipster.registry.password}@47.105.75.65:8090/jhipster-registry/eureka/
+      defaultZone: http://admin:${jhipster.registry.password}@192.168.200.98:8090/jhipster-registry/eureka/
+
+
+spring:
+  profiles:
+    active: dev
+    include:
+      - swagger
+      # Uncomment to activate TLS for the dev profile
+      #- tls
+  devtools:
+    restart:
+      enabled: true
+      additional-exclude: .h2.server.properties
+    livereload:
+      enabled: false # we use Webpack dev server + BrowserSync for livereload
+  jackson:
+    serialization:
+      indent-output: true
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+#    url: jdbc:mysql://47.105.75.65:3306/tqt_bs_prod?serverTimezone=GMT%2B8&useSSL=false
+    url: jdbc:mysql://192.168.200.98:3306/tqt_bs_prod?serverTimezone=GMT%2B8&useSSL=false
+#    username: tqtali
+#    password: tqtali
+    username: root
+    password: tq123
+    hikari:
+      poolName: Hikari
+      auto-commit: false
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 250
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+  h2:
+    console:
+      enabled: false
+  jpa:
+    database-platform: io.github.jhipster.domain.util.FixedH2Dialect
+    database: H2
+    show-sql: true
+    properties:
+      hibernate.id.new_generator_mappings: true
+      hibernate.connection.provider_disables_autocommit: true
+      hibernate.cache.use_second_level_cache: true
+      hibernate.cache.use_query_cache: false
+      hibernate.generate_statistics: false
+      hibernate.cache.region.factory_class: com.hazelcast.hibernate.HazelcastCacheRegionFactory
+      hibernate.cache.hazelcast.instance_name: common
+      hibernate.cache.use_minimal_puts: true
+      hibernate.cache.hazelcast.use_lite_member: true
+  liquibase:
+    # Remove 'faker' if you do not want the sample data to be loaded automatically
+    contexts: dev, faker
+  mail:
+    host: localhost
+    port: 25
+    username:
+    password:
+  messages:
+    cache-duration: PT1S # 1 second, see the ISO 8601 standard
+  thymeleaf:
+    cache: false
+  sleuth:
+    sampler:
+      probability: 1 # report 100% of traces
+  zipkin: # Use the "zipkin" Maven profile to have the Spring Cloud Zipkin dependencies
+    base-url: http://localhost:9411
+    enabled: false
+    locator:
+      discovery:
+        enabled: true
+
+server:
+  port: 8084
+
+# mybatis 配置
+mybatis:
+  #  dao层匹配xml路径
+  mapper-locations: classpath:mapping/*.xml, classpath:com/soft/common/mybatis/extend/dao/xml/*.xml  #classpath就是应用程序resources的路径
+
+  type-aliases-package: com.soft.common.model
+
+# mybatis 通用 mapper
+mapper:
+  mappers: com.sjasoft.framework.dao.BaseDao
+  #  生成uuid主键
+  identity: 'select replace(uuid(), "-", "")'
+  before: true
+  not-empty: true
+
+mybatis-plus:
+  mapper-locations: classpath:mapping/*.xml, classpath:com/soft/common/mybatis/extend/dao/xml/*.xml
+  #实体扫描，多个package用逗号或者分号分隔
+  typeAliasesPackage: com.soft.common.model.*
+  global-config:
+    #主键类型  0:"数据库ID自增", 1:"用户输入ID",2:"全局唯一ID (数字类型唯一ID)", 3:"全局唯一ID UUID";
+    id-type: 3
+    #字段策略 0:"忽略判断",1:"非 NULL 判断"),2:"非空判断"
+    field-strategy: 2
+    #驼峰下划线转换
+    db-column-underline: false
+    #刷新mapper 调试神器
+    refresh-mapper: true
+    #数据库大写下划线转换
+    #capital-mode: true
+    # Sequence序列接口实现类配置
+    #key-generator: com.baomidou.mybatisplus.incrementer.OracleKeyGenerator
+    #逻辑删除配置
+    logic-delete-value: 1
+    logic-not-delete-value: 0
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    call-setters-on-nulls: true
+
+# ===================================================================
+# JHipster specific properties
+#
+# Full reference is available at: https://www.jhipster.tech/common-application-properties/
+# ===================================================================
+
+jhipster:
+  cache: # Cache configuration
+    hazelcast: # Hazelcast distributed cache
+      time-to-live-seconds: 3600
+      backup-count: 1
+      management-center: # Full reference is available at: http://docs.hazelcast.org/docs/management-center/3.9/manual/html/Deploying_and_Starting.html
+        enabled: false
+        update-interval: 3
+        url: http://localhost:8180/mancenter
+  # CORS is disabled by default on microservices, as you should access them through a gateway.
+  # If you want to enable it, please uncomment the configuration below.
+  # cors:
+  #     allowed-origins: "*"
+  #     allowed-methods: "*"
+  #     allowed-headers: "*"
+  #     exposed-headers: "Authorization,Link,X-Total-Count"
+  #     allow-credentials: true
+  #     max-age: 1800
+  security:
+    authentication:
+      jwt:
+        # This token must be encoded using Base64 and be at least 256 bits long (you can type `openssl rand -base64 64` on your command line to generate a 512 bits one)
+        base64-secret: NjU5MWM4ZWQ0YTM5NzY5ODQ5NzI5NDJjMTgyMGRiYmNiNWQyMDY4MTM3NjBlMjEwYjRkY2E3ZjY4MWY4NmNjNzA5NGI1MGM1MmE2YWNhYjU5NTkzNzlkMzg0NGFjYmMwOWY5NDAyYjE3MWJhMGZkMjg3MmQ3MGM4MWY3ZTM1YTA=
+        # Token is valid 24 hours
+        token-validity-in-seconds: 86400
+        token-validity-in-seconds-for-remember-me: 2592000
+  mail: # specific JHipster mail property, for standard properties see MailProperties
+    base-url: http://127.0.0.1:8084
+  metrics:
+    logs: # Reports metrics in the logs
+      enabled: false
+      report-frequency: 60 # in seconds
+  logging:
+    use-json-format: false # By default, logs are not in Json format
+    logstash: # Forward logs to logstash over a socket, used by LoggingConfiguration
+      enabled: false
+      host: localhost
+      port: 5000
+      queue-size: 512
+  audit-events:
+    retention-period: 30 # Number of days before audit events are deleted.
+# 需要同步基础数据的服务
+serviceNames: servicesa,servicepl,servicepu,serviceda,servicesp
+

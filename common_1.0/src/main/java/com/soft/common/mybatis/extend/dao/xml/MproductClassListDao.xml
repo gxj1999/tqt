@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.soft.common.mybatis.extend.dao.MproductClassListDao">
+    <resultMap id="MproductClassMap" type="com.soft.common.mybatis.extend.entity.MProductClassEx" extends="com.soft.common.mapper.MProductClassMapper.BaseResultMap">
+        <result column="prodTypeNm" jdbcType="VARCHAR" property="prodTypeNm"/>
+        <result column="GENERAL_CD" jdbcType="VARCHAR" property="generalCd"/>
+        <result column="GENERAL_NM" jdbcType="VARCHAR" property="generalNm"/>
+    </resultMap>
+    <resultMap id="MproductClassNewMap" type="com.soft.common.mybatis.extend.entity.MProductClassEx" extends="com.soft.common.mapper.MProductClassMapper.BaseResultMap">
+        <result column="prodTypeNm" jdbcType="VARCHAR" property="prodTypeNm"/>
+        <result column="GENERAL_CD" jdbcType="VARCHAR" property="generalCd"/>
+        <result column="GENERAL_NM" jdbcType="VARCHAR" property="generalNm"/>
+        <result column="KEY_PROD_CLASS_NM" jdbcType="VARCHAR" property="keyProdClassNm"/>
+        <collection column="id=id,keyProdClassNm = KEY_PROD_CLASS_NM" property="children" ofType="com.soft.common.mybatis.extend.entity.MProductClassEx" javaType="java.util.ArrayList" select="selectLine"/>
+    </resultMap>
+    <select id="selectMProductClass" resultMap="MproductClassMap">
+        SELECT c.*,     <!--商品分类表 -->
+        G.GENERAL_CD,G.GENERAL_NM prodTypeNm
+        FROM M_PRODUCT_CLASS c
+        left join M_GENERAL g ON g.GENERAL_MASTER_TYPE = 'PROD_TYPE'
+        and c.PROD_TYPE = g.GENERAL_CD
+        and g.DEL_FLG = '0'
+        WHERE 1 = 1
+        and c.DEL_FLG = '0'
+        <if test="prodClassCdDis != null and prodClassCdDis != '' ">
+            <bind name="like_prodClassCdDis" value="'%' + prodClassCdDis + '%'"/>
+            AND c.PROD_CLASS_CD_DIS like #{like_prodClassCdDis}
+        </if>
+        <if test="prodClassNm != null and prodClassNm != '' ">
+            <bind name="like_prodClassNm" value="'%' + prodClassNm + '%'"/>
+            AND c.PROD_CLASS_NM like #{like_prodClassNm}
+        </if>
+        <if test="prodClassJc != null and prodClassJc != '' ">
+            <bind name="like_prodClassJc" value="'%' + prodClassJc + '%'"/>
+            AND c.PROD_CLASS_JC like #{like_prodClassJc}
+        </if>
+        <if test="prodClassNmEn != null and prodClassNmEn != '' ">
+            <bind name="like_prodClassNmEn" value="'%' + prodClassNmEn + '%'"/>
+            AND c.PROD_CLASS_NM_EN like #{like_prodClassNmEn}
+        </if>
+        <if test="prodType != null and prodType != '' ">
+            AND c.PROD_TYPE = #{prodType}
+        </if>
+        order by c.PROD_CLASS_JC ASC,c.PROD_CLASS_NM ASC
+    </select>
+    <select id="selectMProductClassNew" resultMap="MproductClassNewMap">
+        SELECT c.*,     <!--商品分类表 -->
+        G.GENERAL_NM prodTypeNm,
+        #{prodClassNm} as KEY_PROD_CLASS_NM
+        FROM M_PRODUCT_CLASS c
+        left join M_GENERAL g ON g.GENERAL_MASTER_TYPE = 'PROD_TYPE'
+        and c.PROD_TYPE = g.GENERAL_CD
+        and g.DEL_FLG = '0'
+        WHERE 1 = 1
+        and c.DEL_FLG = '0'
+        AND c.PROD_TYPE = '10'
+        AND (c.PARENT_CLASS IS NULL or c.PARENT_CLASS = '')
+        <if test="prodClassNm != null and prodClassNm != '' ">
+            AND EXISTS (
+                SELECT 1
+                FROM M_PRODUCT_CLASS
+                WHERE 1 = 1
+                and DEL_FLG = '0'
+                AND PROD_TYPE = '10'
+                AND PARENT_CLASS = c.id
+--                 and PATH LIKE concat('%', c.PATH, '%')
+                <bind name="like_prodClassNm" value="'%' + prodClassNm + '%'"/>
+                AND PROD_CLASS_NM LIKE #{like_prodClassNm}
+                order by PROD_CLASS_NM
+            )
+        </if>
+        GROUP BY c.ID
+        order by c.PROD_CLASS_NM
+    </select>
+
+    <select id="selectLine" resultMap="MproductClassNewMap">
+        SELECT c.*,     <!--商品分类表 -->
+        G.GENERAL_NM prodTypeNm,
+        #{keyProdClassNm} as KEY_PROD_CLASS_NM
+        FROM M_PRODUCT_CLASS c
+        left join M_GENERAL g ON g.GENERAL_MASTER_TYPE = 'PROD_TYPE'
+        and c.PROD_TYPE = g.GENERAL_CD
+        and g.DEL_FLG = '0'
+        WHERE 1 = 1
+        and c.DEL_FLG = '0'
+        AND c.PROD_TYPE = '10'
+<!--        <if test="keyProdClassNm != null and keyProdClassNm != '' ">-->
+<!--            AND EXISTS (-->
+<!--            SELECT 1-->
+<!--            FROM M_PRODUCT_CLASS-->
+<!--            WHERE 1 = 1-->
+<!--            and DEL_FLG = '0'-->
+<!--            AND PROD_TYPE = '10'-->
+<!--            &#45;&#45;                 AND PARENT_CLASS = c.id-->
+<!--            and PATH LIKE concat('%', c.PATH, '%')-->
+<!--            <bind name="like_keyProdClassNm" value="'%' + keyProdClassNm + '%'"/>-->
+<!--            AND PROD_CLASS_NM LIKE #{like_keyProdClassNm}-->
+<!--            order by PROD_CLASS_NM-->
+<!--            )-->
+<!--        </if>-->
+        AND c.PARENT_CLASS = #{id}
+        <if test="keyProdClassNm != null and keyProdClassNm != '' ">
+            <bind name="like_keyProdClassNm" value="'%' + keyProdClassNm + '%'"/>
+            AND c.PROD_CLASS_NM LIKE #{like_keyProdClassNm}
+        </if>
+        order by c.PROD_CLASS_NM
+    </select>
+    <select id="selectMproductClassLine" resultMap="MproductClassMap">
+        SELECT c.*                        <!--商品分类表 -->
+        ,g.GENERAL_NM prodTypeNm   <!--商品类型 -->
+        FROM M_PRODUCT_CLASS c
+        left join M_GENERAL g ON g.GENERAL_MASTER_TYPE = 'PROD_TYPE'
+        and c.PROD_TYPE = g.GENERAL_CD
+        and g.DEL_FLG = '0'
+        WHERE 1 = 1
+        and c.DEL_FLG = '0'
+        <if test="prodClassId != null and prodClassId != '' ">
+            AND c.ID = #{prodClassId}
+        </if>
+    </select>
+
+    <resultMap id="mLevelMap" type="com.soft.common.mybatis.extend.entity.MLevelProductClass"
+               extends="com.soft.common.mapper.MProductClassMapper.BaseResultMap">
+        <collection property="children" column="prodType=PROD_TYPE,parentClass=ID" select="selectLevelLine"
+                    javaType="java.util.ArrayList" ofType="com.soft.common.mybatis.extend.entity.MLevelProductClass"/>
+    </resultMap>
+    <resultMap id="mproductclassMap" type="com.soft.common.model.MProductClass"
+               extends="com.soft.common.mapper.MProductClassMapper.BaseResultMap">
+    </resultMap>
+<!--    <resultMap id="mLevelSecondMap" type="com.soft.common.mybatis.extend.entity.MLevelSecond"-->
+<!--               extends="com.soft.common.mapper.MProductClassMapper.BaseResultMap">-->
+<!--        <collection property="thirdsList" column="parentClass=ID" select="getThirdList"-->
+<!--                    javaType="java.util.ArrayList" ofType="com.soft.common.model.MProductClass"/>-->
+<!--    </resultMap>-->
+
+<!--    <resultMap id="mLevelThirdMap" type="com.soft.common.mybatis.extend.entity.MLevelThird"-->
+<!--               extends="com.soft.common.mapper.MProductClassMapper.BaseResultMap">-->
+<!--    </resultMap>-->
+
+    <select id="selectLevel" resultMap="mLevelMap">
+        SELECT
+            mp.*
+        FROM
+            m_product_class mp
+        WHERE
+            (mp.PARENT_CLASS IS NULL or mp.PARENT_CLASS = '')
+            <if test="prodType != null and prodType != '' ">
+                AND mp.PROD_TYPE = #{prodType}
+            </if>
+            AND mp.DEL_FLG = '0'
+        ORDER BY
+            mp.PROD_CLASS_NM
+    </select>
+
+    <select id="selectLevelLine" resultMap="mLevelMap">
+        SELECT
+            mp.*
+        FROM
+            m_product_class mp
+        WHERE
+            mp.PARENT_CLASS = #{parentClass}
+            <if test="prodType != null and prodType != '' ">
+                AND mp.PROD_TYPE = #{prodType}
+            </if>
+            AND mp.DEL_FLG = '0'
+        ORDER BY
+            mp.PROD_CLASS_NM
+    </select>
+    <select id="selectParent" resultMap="mproductclassMap">
+        SELECT
+        mp.*
+        FROM
+        m_product_class mp
+        WHERE
+          mp.DEL_FLG = '0'
+          AND mp.CLASS_LEVEL = '1'
+        AND (mp.PARENT_CLASS IS NULL or mp.PARENT_CLASS = '')
+        AND mp.PROD_TYPE = '01'
+        ORDER BY
+        mp.PROD_CLASS_NM
+    </select>
+
+    <select id="selectChild" resultMap="mproductclassMap">
+        SELECT
+        mp.*
+        FROM
+        m_product_class mp
+        WHERE
+         mp.CLASS_LEVEL = '2'
+        <if test="parentClass != null and parentClass != '' ">
+            AND mp.PARENT_CLASS = #{parentClass}
+        </if>
+        AND mp.PROD_TYPE = '01'
+        AND mp.DEL_FLG = '0'
+        ORDER BY
+        mp.PROD_CLASS_NM
+    </select>
+<!--    <select id="getThirdList" resultMap="mLevelThirdMap">-->
+<!--        SELECT-->
+<!--            mp.ID,-->
+<!--            mp.CLASS_LEVEL,-->
+<!--            mp.PROD_CLASS_CD_DIS,-->
+<!--            mp.PROD_CLASS_NM-->
+<!--        FROM-->
+<!--            m_product_class mp-->
+<!--        WHERE-->
+<!--            mp.PARENT_CLASS = #{parentClass}-->
+<!--        GROUP BY-->
+<!--            mp.PROD_CLASS_NM-->
+<!--        ORDER BY-->
+<!--            mp.PROD_CLASS_NM-->
+<!--    </select>-->
+
+
+</mapper>

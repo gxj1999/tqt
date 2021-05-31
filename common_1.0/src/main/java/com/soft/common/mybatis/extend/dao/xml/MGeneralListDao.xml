@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.MGeneralListDao">
+	<resultMap id="mGeneralMap" type="com.soft.common.model.MGeneral" extends="com.soft.common.mapper.MGeneralMapper.BaseResultMap">
+	</resultMap>
+
+	<select id="selectMGeneral" resultMap="mGeneralMap">
+			SELECT m.*          <!--共通CODE表 -->
+			  FROM M_GENERAL m
+			  WHERE 1 = 1
+				AND m.DEL_FLG = '0'
+			<if test="generalMasterType != null and generalMasterType != '' ">
+                <bind name="like_generalMasterType" value="'%' + generalMasterType + '%'"/>
+				AND m.GENERAL_MASTER_TYPE like #{like_generalMasterType}
+			</if>
+			<if test="generalMasterTypeNm != null and generalMasterTypeNm != '' ">
+				<bind name="like_generalMasterTypeNm" value="'%' + generalMasterTypeNm + '%'"/>
+				AND (m.GENERAL_MASTER_TYPE_NM like  #{like_generalMasterTypeNm})
+			</if>
+			order by m.GENERAL_MASTER_TYPE,m.GENERAL_CD
+	</select>
+    <select id="selectMgeneralByType"  resultMap="mGeneralMap">
+        SELECT
+        *                    <!--共通CODE表 -->
+        FROM M_GENERAL
+        WHERE 1 = 1
+        AND DEL_FLG = '0'
+        <if test="generalType != null and generalType != '' ">
+            AND GENERAL_MASTER_TYPE = #{generalType}
+        </if>
+        <if test="char1 != null and char1 != '' ">
+            AND CHAR1 = #{char1}
+        </if>
+        <if test="char2 != null and char2 != '' ">
+            AND CHAR2 = #{char2}
+        </if>
+        <if test="char3 != null and char3 != '' ">
+            AND CHAR3 = #{char3}
+        </if>
+        <if test="char4 != null and char4 != '' ">
+            AND CHAR4 = #{char4}
+        </if>
+        <if test="char5 != null and char5 != '' ">
+            AND CHAR5 = #{char5}
+        </if>
+        <if test="char6 != null and char6 != '' ">
+            AND CHAR6 = #{char6}
+        </if>
+        <if test="char7 != null and char7 != '' ">
+            AND CHAR7 = #{char7}
+        </if>
+        <if test="char8 != null and char8 != '' ">
+            AND CHAR8 = #{char8}
+        </if>
+        <if test="char9 != null and char9 != '' ">
+            AND CHAR9 = #{char9}
+        </if>
+        <if test="char10 != null and char10 != '' ">
+            AND CHAR10 = #{char10}
+        </if>
+        order by GENERAL_MASTER_TYPE,GENERAL_CD
+    </select>
+
+	<select id="selectMgeneralByCd"  parameterType = "java.lang.String" resultMap="mGeneralMap">
+		SELECT
+		*
+		FROM M_GENERAL
+		WHERE 1 = 1
+		AND DEL_FLG = '0'
+		<if test="generalType != null">
+			AND GENERAL_MASTER_TYPE = #{generalType}
+		</if>
+		<if test="generalCd != null">
+			AND GENERAL_CD = #{generalCd}
+		</if>
+		order by GENERAL_MASTER_TYPE,GENERAL_CD
+	</select>
+	<select id="selectMGeneralLine" resultMap="mGeneralMap">
+		SELECT m.*
+		FROM M_GENERAL m
+		WHERE 1 = 1
+		AND m.DEL_FLG = '0'
+		<if test="generalMasterType != null and generalMasterType != '' ">
+			AND m.GENERAL_MASTER_TYPE = #{generalMasterType}
+		</if>
+		order by m.GENERAL_MASTER_TYPE,m.GENERAL_CD
+	</select>
+</mapper>

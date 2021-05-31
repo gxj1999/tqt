@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.MProductListDao">
+	<resultMap id="MproductMap" type="com.soft.common.mybatis.extend.entity.MProductEx" extends="com.soft.common.mapper.MProductMapper.BaseResultMap">
+		<result column="prodTypeNm" jdbcType="VARCHAR" property="prodTypeNm" />
+		<result column="unitNm" jdbcType="VARCHAR" property="unitNm" />
+		<result column="prodClassNm" jdbcType="VARCHAR" property="prodClassNm" />
+        <result column="ratioRela" jdbcType="VARCHAR" property="ratioRela" />
+        <result column="path" jdbcType="VARCHAR" property="path" />
+<!--        <collection column="{id=id}" property="children" ofType="com.soft.common.model.MProduct" javaType="java.util.ArrayList"  select="selectYarnRatio" />-->
+    </resultMap>
+    <resultMap id="MproductClassMap" type="com.soft.common.mybatis.extend.entity.MProductEx" extends="com.soft.common.mapper.MProductMapper.BaseResultMap">
+        <result column="prodTypeNm" jdbcType="VARCHAR" property="prodTypeNm" />
+        <result column="unitNm" jdbcType="VARCHAR" property="unitNm" />
+        <result column="prodClassNm" jdbcType="VARCHAR" property="prodClassNm" />
+        <result column="path" jdbcType="VARCHAR" property="path" />
+        <collection column="{prodId=id}" property="children" ofType="com.soft.common.mybatis.extend.entity.MProductClassExRatio" javaType="java.util.ArrayList"  select="selectYarnRatio" />
+    </resultMap>
+    <resultMap id="YarnRatioMap" type="com.soft.common.mybatis.extend.entity.MProductClassExRatio" extends="com.soft.common.mapper.MProductClassMapper.BaseResultMap">
+        <result column="ratio" jdbcType="VARCHAR" property="ratio" />
+        <result column="prodRelaId" jdbcType="VARCHAR" property="prodRelaId" />
+    </resultMap>
+	<select id="selectmproduct" resultMap="MproductMap">
+			SELECT   p.*                                <!--商品表 -->
+					,c.PROD_CLASS_NM prodClassNm        <!--商品分类名称 -->
+                    ,c.path
+					,g1.GENERAL_NM prodTypeNm          <!--商品类型 -->
+					,g2.GENERAL_NM unitNm              <!--计量单位 -->
+			  FROM M_PRODUCT p
+			  left join M_GENERAL g1 ON g1.GENERAL_MASTER_TYPE = 'PROD_TYPE'
+			  and p.PROD_TYPE = g1.GENERAL_CD
+			  and g1.DEL_FLG = '0'
+			  left join M_GENERAL g2 ON g2.GENERAL_MASTER_TYPE = 'UNIT'
+			  and p.UNIT = g2.GENERAL_CD
+			  and g2.DEL_FLG = '0'
+			  left join M_PRODUCT_CLASS c
+			  on p.PROD_CLASS_ID = c.ID
+			  <!-- and p.CNTR_CD = c.CNTR_CD -->
+			  and c.DEL_FLG = '0'
+			 WHERE 1 = 1
+				and p.DEL_FLG = '0'
+		    <if test="prodCdDis != null and prodCdDis != '' ">
+				<bind name="like_prodCdDis" value="'%' + prodCdDis + '%'"/>
+			   AND p.PROD_CD_DIS like #{like_prodCdDis}
+		    </if>
+			<if test="prodNm != null and prodNm != '' ">
+				<bind name="like_prodNm" value="'%' + prodNm + '%'"/>
+			   AND p.PROD_NM like #{like_prodNm}
+			</if>
+			<if test="prodJc != null and prodJc != '' ">
+				<bind name="like_prodJc" value="'%' + prodJc + '%'"/>
+				AND p.PROD_JC like #{like_prodJc}
+			</if>
+			<if test="prodNmEn != null and prodNmEn != '' ">
+				<bind name="like_prodNmEn" value="'%' + prodNmEn + '%'"/>
+				AND p.PROD_NM_EN like #{like_prodNmEn}
+			</if>
+			<if test="prodType != null and prodType != '' ">
+			   AND p.PROD_TYPE = #{prodType}
+			</if>
+			<if test="assetModel != null and assetModel != '' ">
+				<bind name="like_assetModel" value="'%' + assetModel + '%'"/>
+				AND p.ASSET_MODEL like #{like_assetModel}
+			</if>
+			<if test="yarnCount != null and yarnCount != '' ">
+				<bind name="like_yarnCount" value="'%' + yarnCount + '%'"/>
+				AND p.YARN_COUNT like #{like_yarnCount}
+			</if>
+			<if test="ratio != null and ratio != '' ">
+				<bind name="like_ratio" value="'%' + ratio + '%'"/>
+				AND p.RATIO like #{like_ratio}
+			</if>
+			order by p.PROD_CD_DIS,p.PROD_NM
+	</select>
+	<select id="selectMproductLine" resultMap="MproductMap">
+				SELECT p.*                              <!--商品表 -->
+						,c.PROD_CLASS_NM prodClassNm     <!--商品分类名称 -->
+						,g1.GENERAL_NM prodTypeNm          <!--商品类型 -->
+						,g2.GENERAL_NM unitNm              <!--计量单位 -->
+				FROM M_PRODUCT p
+				left join M_GENERAL g1 ON g1.GENERAL_MASTER_TYPE = 'PROD_TYPE'
+				and p.PROD_TYPE = g1.GENERAL_CD
+				and g1.DEL_FLG = '0'
+				left join M_GENERAL g2 ON g2.GENERAL_MASTER_TYPE = 'UNIT'
+				and p.UNIT = g2.GENERAL_CD
+				and g2.DEL_FLG = '0'
+				left join M_PRODUCT_CLASS c
+				on p.PROD_CLASS_ID = c.ID
+				and p.CNTR_CD = c.CNTR_CD
+				and c.DEL_FLG = '0'
+				WHERE 1 = 1
+				and p.DEL_FLG = '0'
+				<if test="prodId != null and prodId != '' ">
+					AND p.ID = #{prodId}
+				</if>
+	</select>
+	<select id="selectMProductByClass" resultMap="MproductMap">
+		SELECT
+		p.*
+		FROM
+        M_PRODUCT p
+		LEFT OUTER JOIN M_PRODUCT_CLASS  mc ON mc.ID = p.PROD_CLASS_ID
+		AND mc.PROD_TYPE = p.PROD_TYPE
+		AND mc.DEL_FLG = '0'
+		WHERE
+		1 = 1
+		AND p.DEL_FLG = '0'
+        AND p.PROD_TYPE = #{prodType}
+		<if test="prodClassNm != null">
+            <foreach collection="prodClassNm" index="index" item="item" open="and (" separator=" OR " close=")">
+                p.PROD_NM LIKE CONCAT('%',#{item},'%')
+            </foreach>
+		</if>
+		order by p.PROD_CD_DIS,p.PROD_NM
+	</select>
+    <select id="selectMProductByClassNew" resultMap="MproductMap">
+        SELECT
+        p.*
+        FROM
+        M_PRODUCT p
+        LEFT OUTER JOIN M_PRODUCT_CLASS  mc ON mc.ID = p.PROD_CLASS_ID
+        AND mc.PROD_TYPE = p.PROD_TYPE
+        AND mc.DEL_FLG = '0'
+        WHERE
+        1 = 1
+        AND p.DEL_FLG = '0'
+        AND p.PROD_TYPE = #{prodType}
+        <if test="yarnCount != null and yarnCount != '' ">
+            <bind name="like_yarnCount" value="'%' + yarnCount + '%'"/>
+            <!-- update xhs 2020-04-26 start -->
+            AND p.PROD_NM LIKE #{like_yarnCount}
+            <!-- update xhs 2020-04-26 end -->
+        </if>
+        <if test="ratio != null and ratio != '' ">
+            AND p.RATIO != '100'
+        </if>
+        <if test="prodClassNm != null">
+            <foreach collection="prodClassNm" index="index" item="item" open="and (" separator=" OR " close=")">
+                p.PROD_NM LIKE CONCAT('%',#{item},'%')
+            </foreach>
+        </if>
+        order by p.PROD_NM
+    </select>
+    <select id="selectMProduct" resultMap="MproductClassMap">
+        SELECT
+        p.*
+        ,CONCAT(c.PATH, p.PROD_CLASS_ID) path     <!--商品分类 -->
+        ,c.PROD_CLASS_NM prodClassNm     <!--商品分类名称 -->
+        ,g1.GENERAL_NM prodTypeNm          <!--商品类型 -->
+        ,g2.GENERAL_NM unitNm              <!--计量单位 -->
+        FROM M_PRODUCT p
+        left join M_GENERAL g1 ON g1.GENERAL_MASTER_TYPE = 'PROD_TYPE'
+        and p.PROD_TYPE = g1.GENERAL_CD
+        and g1.DEL_FLG = '0'
+        left join M_GENERAL g2 ON g2.GENERAL_MASTER_TYPE = 'UNIT'
+        and p.UNIT = g2.GENERAL_CD
+        and g2.DEL_FLG = '0'
+        left join M_PRODUCT_CLASS c
+        on p.PROD_CLASS_ID = c.ID
+        <!-- and p.CNTR_CD = c.CNTR_CD -->
+        and c.DEL_FLG = '0'
+        WHERE
+        1 = 1
+--         AND p.DEL_FLG = '0'
+        and p.ID = #{prodId}
+        order by p.PROD_NM
+    </select>
+    <select id="selectYarnRatio" resultMap="YarnRatioMap">
+        SELECT
+            mc.*,
+            mp.RATIO ratio,
+            mp.PROD_CLASS_ID prodClassId,
+            mp.ID prodRelaId
+        FROM  M_PRODUCT c
+        LEFT JOIN M_PRODUCT_RELA mp ON mp.PROD_ID = c.ID
+        AND mp.DEL_FLG = '0'
+        LEFT OUTER JOIN M_PRODUCT_CLASS mc ON mc.ID = mp.PROD_CLASS_ID
+        AND mc.DEL_FLG = '0'
+        WHERE
+         c.DEL_FLG = '0'
+        and mp.PROD_ID = #{prodId}
+        order by c.PROD_NM
+    </select>
+</mapper>

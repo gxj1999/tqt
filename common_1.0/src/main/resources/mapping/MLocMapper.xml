@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.soft.common.mapper.MLocMapper">
+  <resultMap id="BaseResultMap" type="com.soft.common.model.MLoc">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="ID" jdbcType="VARCHAR" property="id" />
+    <result column="CNTR_CD" jdbcType="VARCHAR" property="cntrCd" />
+    <result column="WH_ID" jdbcType="VARCHAR" property="whId" />
+    <result column="ZONE_ID" jdbcType="VARCHAR" property="zoneId" />
+    <result column="LOC_CD_DIS" jdbcType="VARCHAR" property="locCdDis" />
+    <result column="LOC_NM" jdbcType="VARCHAR" property="locNm" />
+    <result column="LOC_TYPE" jdbcType="VARCHAR" property="locType" />
+    <result column="WGT_LIMIT" jdbcType="DECIMAL" property="wgtLimit" />
+    <result column="HEIGHT_LIMIT" jdbcType="DECIMAL" property="heightLimit" />
+    <result column="WIDTH_LIMIT" jdbcType="DECIMAL" property="widthLimit" />
+    <result column="DEPTH_LIMIT" jdbcType="DECIMAL" property="depthLimit" />
+    <result column="RANK_FOR_ONS" jdbcType="DECIMAL" property="rankForOns" />
+    <result column="RANK_FOR_ISS" jdbcType="DECIMAL" property="rankForIss" />
+    <result column="ALLC_NG_CLS" jdbcType="VARCHAR" property="allcNgCls" />
+    <result column="REMARKS" jdbcType="VARCHAR" property="remarks" />
+    <result column="CHAR1" jdbcType="VARCHAR" property="char1" />
+    <result column="CHAR2" jdbcType="VARCHAR" property="char2" />
+    <result column="CHAR3" jdbcType="VARCHAR" property="char3" />
+    <result column="CHAR4" jdbcType="VARCHAR" property="char4" />
+    <result column="CHAR5" jdbcType="VARCHAR" property="char5" />
+    <result column="CHAR6" jdbcType="VARCHAR" property="char6" />
+    <result column="CHAR7" jdbcType="VARCHAR" property="char7" />
+    <result column="CHAR8" jdbcType="VARCHAR" property="char8" />
+    <result column="CHAR9" jdbcType="VARCHAR" property="char9" />
+    <result column="CHAR10" jdbcType="VARCHAR" property="char10" />
+    <result column="NUM1" jdbcType="DECIMAL" property="num1" />
+    <result column="NUM2" jdbcType="DECIMAL" property="num2" />
+    <result column="NUM3" jdbcType="DECIMAL" property="num3" />
+    <result column="NUM4" jdbcType="DECIMAL" property="num4" />
+    <result column="NUM5" jdbcType="DECIMAL" property="num5" />
+    <result column="NUM6" jdbcType="DECIMAL" property="num6" />
+    <result column="NUM7" jdbcType="DECIMAL" property="num7" />
+    <result column="NUM8" jdbcType="DECIMAL" property="num8" />
+    <result column="NUM9" jdbcType="DECIMAL" property="num9" />
+    <result column="NUM10" jdbcType="DECIMAL" property="num10" />
+    <result column="UPD_CNT" jdbcType="INTEGER" property="updCnt" />
+    <result column="DEL_FLG" jdbcType="VARCHAR" property="delFlg" />
+    <result column="ADD_ENT_KBN" jdbcType="VARCHAR" property="addEntKbn" />
+    <result column="ADD_PGM_ID" jdbcType="VARCHAR" property="addPgmId" />
+    <result column="ADD_USER_ID" jdbcType="VARCHAR" property="addUserId" />
+    <result column="ADD_USER_NM" jdbcType="VARCHAR" property="addUserNm" />
+    <result column="ADD_TNMT_ID" jdbcType="VARCHAR" property="addTnmtId" />
+    <result column="ADD_DT" jdbcType="TIMESTAMP" property="addDt" />
+    <result column="UPD_ENT_KBN" jdbcType="VARCHAR" property="updEntKbn" />
+    <result column="UPD_PGM_ID" jdbcType="VARCHAR" property="updPgmId" />
+    <result column="UPD_USER_ID" jdbcType="VARCHAR" property="updUserId" />
+    <result column="UPD_USER_NM" jdbcType="VARCHAR" property="updUserNm" />
+    <result column="UPD_TNMT_ID" jdbcType="VARCHAR" property="updTnmtId" />
+    <result column="UPD_DT" jdbcType="TIMESTAMP" property="updDt" />
+  </resultMap>
+</mapper>

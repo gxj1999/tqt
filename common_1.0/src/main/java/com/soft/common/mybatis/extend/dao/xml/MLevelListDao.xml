@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.MLevelListDao">
+	<resultMap id="mLevelMap" type="com.soft.common.mybatis.extend.entity.MLevelEx" extends="com.soft.common.mapper.MLevelMapper.BaseResultMap">
+	</resultMap>
+	<resultMap id="mLevelsMap" type="com.soft.common.mybatis.extend.entity.MLevelEx" extends="com.soft.common.mapper.MLevelMapper.BaseResultMap">
+		<result column="levelTypeNm" jdbcType="VARCHAR" property="levelTypeNm" />
+	</resultMap>
+	<select id="selectMLevel" resultMap="mLevelMap">
+			SELECT m.*             <!--评价等级表 -->
+					,g.GENERAL_NM levelTypeNm <!--评级类型 -->
+			  FROM M_LEVEL m
+			left join M_GENERAL g ON g.GENERAL_MASTER_TYPE = 'LEVEL_TYPE'
+			and m.LEVEL_TYPE = g.GENERAL_CD
+			and  g.DEL_FLG = '0'
+			 WHERE 1 = 1
+		       AND m.DEL_FLG = '0'
+			<if test="cntrCd != null and cntrCd != '' ">
+			   AND m.CNTR_CD = #{cntrCd}
+			</if>
+			<if test="levelType != null and levelType != '' ">
+				AND m.LEVEL_TYPE = #{levelType}
+			</if>
+			<if test="levelNm != null and levelNm != '' ">
+				<bind name="like_levelNm" value="'%' + levelNm + '%'"/>
+			   AND m.LEVEL_NM like #{like_levelNm}
+			</if>
+            order by LEVEL_TYPE ASC, LEVEL_NM ASC
+	</select>
+	<select id="selectMLevelLineList" resultMap="mLevelsMap">
+		SELECT m.*                       <!--评价等级表 -->
+				,g.GENERAL_NM levelTypeNm <!--评级类型 -->
+			FROM M_LEVEL m
+	  left join M_GENERAL g ON g.GENERAL_MASTER_TYPE = 'LEVEL_TYPE'
+			and m.LEVEL_TYPE = g.GENERAL_CD
+			and  g.DEL_FLG = '0'
+		  WHERE 1 = 1
+		AND m.DEL_FLG = '0'
+		<if test="levelId != null and levelId != '' ">
+			AND m.ID = #{levelId}
+		</if>
+	</select>
+</mapper>

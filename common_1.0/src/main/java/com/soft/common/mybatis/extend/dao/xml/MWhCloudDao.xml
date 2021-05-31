@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.soft.common.mybatis.extend.dao.MWhCloudDao">
+	<resultMap id="mWhCloudMap" type="com.soft.common.mybatis.extend.entity.MWhCloud" extends="com.soft.common.mapper.MWhMapper.BaseResultMap">
+        <result column="serviceNm" jdbcType="VARCHAR" property="serviceNm" />
+	</resultMap>
+	<select id="selectMWhCloud" resultMap="mWhCloudMap">
+			SELECT m.*      <!--仓库表 -->
+				  ,sys.CLOUD_NM serviceNm  <!--微服务APP名 -->
+			  FROM M_WH m
+		 left join SYS_WH_CLOUD sys ON sys.DEL_FLG = '0'
+			   and m.ID = sys.WH_ID
+			 WHERE 1 = 1
+			   AND m.DEL_FLG = '0'
+			<if test="cntrCd != null and cntrCd != '' ">
+			   AND m.CNTR_CD = #{cntrCd}
+			</if>
+		  order by m.WH_CD_DIS,m.WH_NM
+	</select>
+    <select id="getMwhCloudById" resultType="com.soft.common.mybatis.extend.entity.MWhCloud">
+        SELECT m.*      <!--仓库表 -->
+        ,sys.CLOUD_NM serviceNm  <!--微服务APP名 -->
+        FROM M_WH m
+        left join SYS_WH_CLOUD sys ON sys.DEL_FLG = '0'
+        and m.ID = sys.WH_ID
+        WHERE
+               m.DEL_FLG = '0'
+         AND  m.id = #{id}
+    </select>
+</mapper>
